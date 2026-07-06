@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Office Clicker</title>
+    <style>
+        :root {
+            --bg-main: #f8fafc;
+            --bg-card: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --brand-blue: #0284c7;
+            --brand-blue-hover: #0369a1;
+            --brand-green: #10b981;
+            --brand-green-hover: #059669;
+            --brand-red: #ef4444;
+            --brand-gold: #f59e0b;
+            --brand-purple: #8b5cf6;
+            --brand-purple-hover: #7c3aed;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .ticker-wrap {
+            width: 100%;
+            background-color: #0f172a;
+            color: #38bdf8;
+            padding: 0.35rem 0;
+            font-family: monospace;
+            font-size: 0.8rem;
+            overflow: hidden;
+            border-bottom: 1px solid #1e293b;
+        }
+        .ticker {
+            display: inline-block;
+            white-space: nowrap;
+            padding-left: 100%;
+            animation: ticker-move 35s linear infinite;
+        }
+        @keyframes ticker-move {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-100%, 0, 0); }
+        }
+
+        header {
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 { font-size: 1.4rem; color: var(--brand-blue); font-weight: 700; }
+        .tagline { font-size: 0.85rem; color: var(--text-muted); font-style: italic; }
+
+        .dashboard { display: flex; flex: 1; height: calc(100vh - 85px); }
+
+        /* Left Side Layout */
+        .workstation {
+            flex: 1;
+            background-color: var(--bg-card);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .center-workspace {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            width: 100%;
+            margin-bottom: 1.5rem;
+        }
+
+        .metrics-panel { text-align: center; margin-bottom: 1.5rem; }
+        .counter { font-size: 4rem; font-weight: 800; letter-spacing: -0.05em; line-height: 1; }
+        .counter-label { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-secondary); font-weight: 600; margin-top: 0.5rem; }
+        
+        .job-title-badge {
+            font-size: 0.75rem; font-weight: 700; background-color: #f0fdf4; border: 1px solid #bbf7d0;
+            color: #166534; padding: 4px 12px; border-radius: 9999px; margin-top: 0.5rem; display: inline-block;
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+
+        .buff-container { height: 30px; margin-bottom: 0.5rem; display: flex; gap: 0.5rem; }
+        .buff-pill {
+            background-color: #ecfdf5; border: 1px solid #d1fae5; color: var(--brand-green);
+            padding: 4px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: 600;
+            animation: pulse 1s infinite alternate;
+        }
+        @keyframes pulse { from { opacity: 0.8; } to { opacity: 1; transform: scale(1.02); } }
+
+        .click-btn {
+            background-color: var(--brand-blue); color: white; border: none; padding: 1.5rem 3rem;
+            font-size: 1.25rem; font-weight: 600; border-radius: 12px; cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.2); transition: all 0.15s ease;
+            width: 100%; max-width: 320px; margin-bottom: 1rem;
+        }
+        .click-btn:hover { background-color: var(--brand-blue-hover); transform: translateY(-1px); }
+        .click-btn:active { transform: translateY(1px); }
+
+        /* Cabinet Layout */
+        .cabinet-box {
+            width: 100%; max-width: 440px;
+            border: 1px solid var(--border-color); border-radius: 8px; background-color: #f8fafc; overflow: hidden;
+        }
+        .cabinet-header {
+            background-color: #f1f5f9; padding: 0.75rem 1rem; display: flex;
+            justify-content: space-between; align-items: center; cursor: pointer;
+            user-select: none; border-bottom: 1px solid var(--border-color);
+        }
+        .cabinet-title { font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        .cabinet-content { padding: 1rem; max-height: 250px; overflow-y: auto; transition: max-height 0.25s ease-out; opacity: 1; }
+        .cabinet-content.collapsed { max-height: 0 !important; padding: 0 !important; opacity: 0; pointer-events: none; border: none; }
+
+        .cabinet-summary-bar {
+            background-color: #ffffff; border: 1px dashed var(--brand-gold); border-radius: 6px;
+            padding: 0.5rem; text-align: center; font-size: 0.8rem; font-weight: 700; color: #b45309; margin-bottom: 1rem;
+        }
+
+        .cabinet-sub-section { margin-bottom: 1rem; }
+        .cabinet-sub-section:last-child { margin-bottom: 0; }
+        .cabinet-sub-title {
+            font-size: 0.7rem; font-weight: 700; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem;
+            border-bottom: 1px solid #e2e8f0; padding-bottom: 2px;
+        }
+        .badge-flex-row { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+        /* Tooltips */
+        .ach-badge {
+            position: relative; background-color: #e2e8f0; border: 1px solid var(--border-color);
+            color: var(--text-secondary); padding: 4px 10px; border-radius: 20px;
+            font-size: 0.7rem; font-weight: 600; white-space: nowrap; cursor: help; transition: all 0.2s ease;
+        }
+        .ach-badge.unlocked { background-color: #fffbeb; border-color: var(--brand-gold); color: #b45309; }
+
+        .ach-badge::after {
+            content: attr(data-tooltip); position: absolute; bottom: 135%; left: 50%;
+            transform: translateX(-50%) translateY(4px); background-color: #0f172a; color: #ffffff;
+            padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 400;
+            opacity: 0; pointer-events: none; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+            transition: all 0.15s ease; z-index: 9999; white-space: normal; width: 180px; text-align: center; line-height: 1.2;
+        }
+        .ach-badge::before {
+            content: ''; position: absolute; bottom: 115%; left: 50%; transform: translateX(-50%) translateY(4px);
+            border-width: 5px; border-style: solid; border-color: #0f172a transparent transparent transparent;
+            opacity: 0; pointer-events: none; transition: all 0.15s ease; z-index: 9999;
+        }
+        .ach-badge:hover::after, .ach-badge:hover::before { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        /* Right Side Layout */
+        .directory { flex: 1.2; background-color: var(--bg-main); padding: 2rem; overflow-y: auto; }
+        .mult-btn { border: none; background: transparent; padding: 4px 12px; font-size: 0.8rem; font-weight: 600; border-radius: 4px; cursor: pointer; color: var(--text-secondary); }
+        .mult-btn.active { background: white; color: var(--text-primary); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+        .collapsible-header {
+            display: flex; justify-content: space-between; align-items: center; background-color: #f1f5f9;
+            padding: 0.75rem 1rem; border-radius: 6px; cursor: pointer; user-select: none; margin-top: 1.5rem; margin-bottom: 0.5rem; border: 1px solid var(--border-color);
+        }
+        .collapsible-header:hover { background-color: #e2e8f0; }
+        .section-title { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); font-weight: 700; }
+        .collapse-icon { font-size: 0.8rem; font-weight: bold; color: var(--text-secondary); transition: transform 0.2s; }
+
+        .collapsible-content { max-height: 2000px; overflow: hidden; transition: max-height 0.25s ease-out, opacity 0.2s; opacity: 1; }
+        .collapsible-content.collapsed { max-height: 0 !important; opacity: 0; pointer-events: none; }
+
+        .upgrade-card {
+            background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px;
+            padding: 1rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;
+        }
+        .upgrade-card:hover { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        .upgrade-info h3 { font-size: 0.95rem; color: var(--text-primary); }
+        .upgrade-info p { font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.15rem; }
+        
+        .upgrade-btn {
+            background-color: var(--brand-green); color: white; border: none; padding: 0.6rem 1.2rem;
+            font-size: 0.85rem; font-weight: 600; border-radius: 6px; cursor: pointer; white-space: nowrap; min-width: 125px; text-align: center;
+        }
+        .upgrade-btn:hover { background-color: var(--brand-green-hover); }
+        .upgrade-btn:disabled { background-color: var(--border-color); color: var(--text-muted); cursor: not-allowed; }
+
+        .prestige-btn {
+            background-color: var(--brand-purple); color: white; border: none; padding: 0.6rem 1.2rem;
+            font-size: 0.85rem; font-weight: 600; border-radius: 6px; cursor: pointer; white-space: nowrap; transition: background-color 0.15s;
+        }
+        .prestige-btn:hover { background-color: var(--brand-purple-hover); }
+        .prestige-btn:disabled { background-color: var(--border-color); color: var(--text-muted); cursor: not-allowed; }
+
+        /* Random Event Toast */
+        .toast-notification {
+            position: absolute; bottom: 25px; right: -400px; width: 320px; background-color: #1e293b; color: #ffffff;
+            padding: 1.25rem; border-radius: 10px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+            border-left: 6px solid var(--brand-blue); transition: right 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 1000; cursor: pointer;
+        }
+        .toast-notification.active { right: 25px; }
+        .toast-title { font-size: 0.9rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
+        .toast-body { font-size: 0.8rem; color: #cbd5e1; margin-top: 0.4rem; line-height: 1.3; }
+        .toast-timer { height: 3px; background-color: var(--brand-blue); width: 100%; margin-top: 0.75rem; border-radius: 2px; transition: width linear; }
+
+        /* System Controls and Debug Panels */
+        .system-controls { margin-top: 3rem; border-top: 1px solid var(--border-color); padding-top: 1rem; display: flex; flex-direction: column; gap: 1rem; }
+        .sys-btn-row { display: flex; gap: 1rem; }
+        .sys-btn { background: none; border: 1px solid var(--border-color); color: var(--text-secondary); padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
+        .sys-btn:hover { border-color: var(--brand-red); color: var(--brand-red); }
+        
+        .debug-panel { background-color: #f1f5f9; border: 1px dashed var(--brand-red); padding: 1rem; border-radius: 8px; margin-top: 0.5rem; }
+        .debug-title { font-size: 0.75rem; font-weight: bold; color: var(--brand-red); text-transform: uppercase; margin-bottom: 0.5rem; }
+        .debug-btn { background-color: #ffffff; border: 1px solid #cbd5e1; color: #334155; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 600; }
+        .debug-btn:hover { border-color: var(--brand-red); color: var(--brand-red); }
+    </style>
+</head>
+<body>
+
+    <div class="ticker-wrap">
+        <div class="ticker" id="news-ticker">Loading internal communication memos...</div>
+    </div>
+
+    <header>
+        <h1>Office Clicker <span style="color: var(--text-muted); font-weight: 300; font-size: 1rem;">v1.1.3</span></h1>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <span id="save-status" style="font-size: 0.8rem; color: var(--text-muted);"></span>
+            <div class="tagline">"Per my last email..."</div>
+        </div>
+    </header>
+
+    <div class="dashboard">
+        <!-- Left Side Dashboard Workstation Area -->
+        <div class="workstation">
+            <div class="center-workspace">
+                <div class="buff-container" id="buff-box"></div>
+
+                <div class="metrics-panel">
+                    <div class="counter" id="email-count">0</div>
+                    <div class="counter-label">Emails Sent</div>
+                    
+                    <div><span class="job-title-badge" id="job-title-badge">Trainee Intern</span></div>
+                    
+                    <div id="cps-display" style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 0.5rem;">0.0 emails / sec (0.0 passive)</div>
+                    <div id="cpc-display" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">1.0 per click</div>
+                </div>
+                <button class="click-btn" id="click-btn">Send Email</button>
+            </div>
+
+            <!-- PERFORMANCE CABINET -->
+            <div class="cabinet-box">
+                <div class="cabinet-header" onclick="toggleCabinet()">
+                    <span class="cabinet-title">🏆 Corporate Performance Cabinet</span>
+                    <span id="cabinet-icon" style="font-size: 0.8rem; color: var(--text-secondary);">▼</span>
+                </div>
+                <div id="cabinet-content" class="cabinet-content">
+                    <div class="cabinet-summary-bar" id="cabinet-multiplier-readout">
+                        Total Efficiency Multiplier: +0% Passive Emails
+                    </div>
+
+                    <div class="cabinet-sub-section">
+                        <div class="cabinet-sub-title">Personal Development Awards (Clicking)</div>
+                        <div class="badge-flex-row" id="group-active"></div>
+                    </div>
+
+                    <div class="cabinet-sub-section">
+                        <div class="cabinet-sub-title">Workforce Infrastructure Records (Idle)</div>
+                        <div class="badge-flex-row" id="group-passive"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side Dashboard Controls / Store -->
+        <div class="directory">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">PROCUREMENT SETTINGS</span>
+                <div style="display: flex; gap: 2px; background: var(--border-color); padding: 2px; border-radius: 6px;">
+                    <button class="mult-btn active" onclick="setMultiplier(1)" id="mult-1">x1</button>
+                    <button class="mult-btn" onclick="setMultiplier(5)" id="mult-5">x5</button>
+                    <button class="mult-btn" onclick="setMultiplier('max')" id="mult-max">MAX</button>
+                </div>
+            </div>
+
+            <!-- NEW: DYNAMIC WRAPPER TO HIDE UNTIL CLOSE TO 1M OUTCOME -->
+            <div id="prestige-wrapper" style="display: none;">
+                <!-- EXECUTIVE SUITE (PRESTIGE) -->
+                <div class="collapsible-header" onclick="toggleSection('prestige-section', 'icon-prestige')" style="background-color: #f5f3ff; border-color: #ddd6fe;">
+                    <h2 class="section-title" style="color: #6d28d9;">💼 Executive Suite (Prestige)</h2>
+                    <span class="collapse-icon" id="icon-prestige" style="color: #6d28d9;">▼</span>
+                </div>
+                <div id="prestige-section" class="collapsible-content">
+                    <div class="upgrade-card" style="border-color: #ddd6fe; background-color: #faf5ff; flex-direction: column; align-items: flex-start; gap: 1rem;">
+                        <div>
+                            <h3 style="color: #5b21b6;" id="prestige-portfolio-title">Stock Options Portfolio: 0</h3>
+                            <p style="margin-top: 0.25rem;">Each option grants a permanent <strong style="color: var(--brand-purple);">+2% multiplier</strong> to all Click Power and Passive Generation.</p>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;" id="prestige-lifetime-counter">Career Lifetime Output: 0 emails</p>
+                        </div>
+                        <div style="display: flex; width: 100%; justify-content: space-between; align-items: center; border-top: 1px dashed #e9d5ff; padding-top: 0.75rem;">
+                            <span style="font-size: 0.85rem; font-weight: 500; color: #6d28d9;" id="prestige-payout-text">Next restructuring awards: +0 Options</span>
+                            <button class="prestige-btn" id="prestige-action-btn" onclick="triggerStrategicRestructure()" disabled>Restructure (Needs 1M)</button>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 1rem; margin-bottom: 0.5rem; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Executive Policies Unlocked</div>
+                    <div id="executive-perks-container"></div>
+                </div>
+            </div>
+
+            <!-- Store Panels -->
+            <div class="collapsible-header" onclick="toggleSection('active-section', 'icon-active')">
+                <h2 class="section-title">Personal Development (Click Upgrades)</h2>
+                <span class="collapse-icon" id="icon-active">▼</span>
+            </div>
+            <div id="active-section" class="collapsible-content">
+                <div id="active-upgrades-container"></div>
+            </div>
+
+            <div class="collapsible-header" onclick="toggleSection('passive-section', 'icon-passive')">
+                <h2 class="section-title">Corporate Infrastructure (Idle Automation)</h2>
+                <span class="collapse-icon" id="icon-passive">▼</span>
+            </div>
+            <div id="passive-section" class="collapsible-content">
+                <div id="passive-upgrades-container"></div>
+            </div>
+
+            <!-- Dev Debug Console Systems -->
+            <div class="system-controls">
+                <div class="sys-btn-row">
+                    <button class="sys-btn" onclick="clearSave()">Wipe Progress (HR Reset)</button>
+                    <button class="sys-btn" onclick="securePromptDebugConsole()">Access Admin Terminal</button>
+                </div>
+                
+                <div id="debug-console" class="debug-panel" style="display: none;">
+                    <div class="debug-title">☢️ Internal Developer Control Deck</div>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <button class="debug-btn" onclick="debugAddCurrency(100000)">+100K Emails</button>
+                        <button class="debug-btn" onclick="debugAddCurrency(1000000)">+1M Emails</button>
+                        <button class="debug-btn" onclick="debugAddOptions(500)">+500 Options</button>
+                        <button class="debug-btn" onclick="debugUnlockAllAchievements()">Insta-Unlock Badges</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="event-toast" class="toast-notification" onclick="clickEventNotification()">
+        <div class="toast-title" id="event-title">🔔 Outlook Ping</div>
+        <div class="toast-body" id="event-body">Notification payload.</div>
+        <div class="toast-timer" id="event-progressbar"></div>
+    </div>
+
+    <script>
+        const DEFAULT_STATE = {
+            emails: 0,
+            lifetimeEmails: 0,
+            stockOptions: 0,
+            buyQuantity: "1",
+            
+            upgrades: {
+                coldBrew: { name: "Drink Cold Brew", count: 0, baseCost: 50, scale: 1.2, power: 1, desc: "Hyper-caffeinate. Adds +1 per click." },
+                keyMacros: { name: "Keyboard Macros", count: 0, baseCost: 500, scale: 1.25, power: 5, desc: "Macro-paste jargon. Adds +5 per click." },
+                replyAll: { name: "Reply All Habits", count: 0, baseCost: 4000, scale: 1.3, power: 25, desc: "Target the whole directory. Adds +25 per click." },
+                perMyLast: { name: "\"Per My Last Email\"", count: 0, baseCost: 25000, scale: 1.3, power: 150, desc: "Shut down arguments instantly. Adds +150 per click." },
+                dualMonitor: { name: "Dual Monitor Array", count: 0, baseCost: 175000, scale: 1.35, power: 750, desc: "Twice as fast, twice as dangerous. Adds +750 per click." },
+                buzzwordBingo: { name: "Corporate Bingo", count: 0, baseCost: 1500000, scale: 1.4, power: 4000, desc: "Synergize and pivot smoothly. Adds +4,000 per click." },
+                iphoneSig: { name: "iPhone Signature", count: 0, baseCost: 12500000, scale: 1.4, power: 22000, desc: "Type 'Thx' from a cafe window. Adds +22,000 per click." },
+                linkedInThought: { name: "LinkedIn Thought Leader", count: 0, baseCost: 95000000, scale: 1.45, power: 120000, desc: "Post structural B2B essays. Adds +120,000 per click." }
+            },
+            
+            automation: {
+                intern: { name: "Email Intern", count: 0, baseCost: 15, scale: 1.15, cps: 0.2, desc: "Grinds template jargon. +0.2 emails/sec." },
+                buzzword: { name: "AI Buzzword Gen", count: 0, baseCost: 150, scale: 1.15, cps: 1.5, desc: "Confuse stakeholders. +1.5 emails/sec." },
+                manager: { name: "Middle Manager", count: 0, baseCost: 1200, scale: 1.18, cps: 8.0, desc: "Creates recursive follow-ups. +8.0 emails/sec." },
+                slackBot: { name: "Urgent Slack Bot", count: 0, baseCost: 8500, scale: 1.18, cps: 45.0, desc: "Pings 'Any updates?' constantly. +45.0 emails/sec." },
+                dataAnalyst: { name: "Data Analyst", count: 0, baseCost: 65000, scale: 1.2, cps: 260.0, desc: "Generates massive unread slide decks. +260.0 emails/sec." },
+                steeringComm: { name: "Steering Committee", count: 0, baseCost: 500000, scale: 1.22, cps: 1800.0, desc: "Schedule syncs to plan future syncs. +1,800.0 emails/sec." },
+                consultants: { name: "External Consultants", count: 0, baseCost: 4500000, scale: 1.25, cps: 11500.0, desc: "Repackage data onto flashier charts. +11,500.0 emails/sec." },
+                synergyAI: { name: "Synergy Matrix AI", count: 0, baseCost: 40000000, scale: 1.28, cps: 75000.0, desc: "Spams enterprise nodes globally. +75,000.0 emails/sec." },
+                restructure: { name: "Global Restructure", count: 0, baseCost: 350000000, scale: 1.3, cps: 450000.0, desc: "Complete ecosystem reorganization. +450,000.0 emails/sec." }
+            },
+            perks: {
+                goldenParachute: { name: "Golden Parachute", bought: false, cost: 50, desc: "+50% yield output from Urgent Client Requests." },
+                synergyTraining: { name: "Synergy Training", bought: false, cost: 150, desc: "Permanently doubles base click power multipliers." },
+                onboarding: { name: "Automated Onboarding", bought: false, cost: 500, desc: "Tiers 1-3 automation bases start 10% cheaper." }
+            },
+            unlockedMilestones: {} 
+        };
+
+        let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+        let currentActiveEvent = null;
+        let activeBuffs = { coffeeRush: 0 };
+
+        const MILESTONE_STEPS = [
+            { count: 1, bonus: 0.005, display: "I" },
+            { count: 5, bonus: 0.005, display: "II" },
+            { count: 10, bonus: 0.005, display: "III" },
+            { count: 50, bonus: 0.01, display: "IV" }
+        ];
+
+        const HEADLINE_REVO_BANKS = [
+            "BREAKROOM TOASTER DECLARED ACTIVE BIOHAZARD; HR INITIATES INVESTIGATION ... REPETITIVE STRAIN INJURY DISCUSSIONS POSTPONED DUE TO LACK OF AGENDA ... MICROWAVING FISH IN THE COMMONS CONTINUES TO DRAW PASSIVE AGGRESSIVE POST-IT NOTES",
+            "LOCAL COFFEE SHOP REPORTS RECORD-BREAKING QUARTERLY SURGE DUE TO A SINGLE OUTLOOK DRONE ... SLACK BOT ACCIDENTALLY GAINS SENTIENCE, IMMEDIATELY ASKS FOR HIGHER HOURLY EXPERIENCE RATES ... ENDLESS STATUS SYNCS DECLARED A 'VALUABLE PILLAR OF STAKEHOLDER CULTURE'",
+            "SYNERGY MATRIX AI ACCIDENTALLY FIRES ENTIRE GLOBAL BOARD OF DIRECTORS; OPERATIONAL EFFICIENCY CLIMBS BY 400% ... GLOBAL RESTRUCTURE SHIFTS MARKETING INTIATIVE TO THE CLOUD TRANS-DIMENSIONAL MATRIX ... INBOX EXPANDS PAST LOGICAL SYSTEM CAPACITIES; FOREVER COALESCING TEXT COMMENCING"
+        ];
+
+        window.toggleSection = function(contentId, iconId) {
+            const content = document.getElementById(contentId);
+            const icon = document.getElementById(iconId);
+            if(content && icon) {
+                content.classList.toggle('collapsed');
+                icon.style.transform = content.classList.contains('collapsed') ? 'rotate(-90deg)' : 'rotate(0deg)';
+            }
+        };
+
+        window.toggleCabinet = function() {
+            const content = document.getElementById('cabinet-content');
+            const icon = document.getElementById('cabinet-icon');
+            content.classList.toggle('collapsed');
+            icon.textContent = content.classList.contains('collapsed') ? '►' : '▼';
+        };
+
+        window.securePromptDebugConsole = function() {
+            const panel = document.getElementById('debug-console');
+            if (panel.style.display === 'block') {
+                panel.style.display = 'none';
+                return;
+            }
+            
+            let keyPhrase = prompt("ENTER OVERRIDE ENCRYPTION PASSPHRASE:");
+            if (keyPhrase === "vibe-coding-2026") {
+                panel.style.display = 'block';
+            } else if (keyPhrase !== null) {
+                alert("SECURITY EXCEPTION LOGGED. HR ALERT TRIGGERED.");
+            }
+        };
+
+        function loadGame() {
+            const savedData = localStorage.getItem('office_clicker_save');
+            if (savedData) {
+                try {
+                    const parsed = JSON.parse(savedData);
+                    if(parsed.emails !== undefined) state.emails = parsed.emails;
+                    if(parsed.lifetimeEmails !== undefined) state.lifetimeEmails = parsed.lifetimeEmails;
+                    if(parsed.stockOptions !== undefined) state.stockOptions = parsed.stockOptions;
+                    for(let key in parsed.upgrades) if(state.upgrades[key]) state.upgrades[key].count = parsed.upgrades[key].count;
+                    for(let key in parsed.automation) if(state.automation[key]) state.automation[key].count = parsed.automation[key].count;
+                    for(let key in parsed.perks) if(state.perks[key]) state.perks[key].bought = parsed.perks[key].bought;
+                    if(parsed.unlockedMilestones) state.unlockedMilestones = parsed.unlockedMilestones;
+                } catch(e) { console.error("Error configuration on data loading.", e); }
+            }
+        }
+
+        function saveGame(isAuto = true) {
+            localStorage.setItem('office_clicker_save', JSON.stringify(state));
+            const statusEl = document.getElementById('save-status');
+            statusEl.textContent = isAuto ? "Autosaved..." : "Progress Saved!";
+            setTimeout(() => { statusEl.textContent = ""; }, 1500);
+        }
+
+        function clearSave() {
+            if(confirm("Wipe career progress data? Everything resets.")) {
+                localStorage.removeItem('office_clicker_save');
+                state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+                activeBuffs = { coffeeRush: 0 };
+                buildUpgradeUI();
+                buildAchievementUI();
+                buildPerksUI();
+                updateUI();
+            }
+        }
+
+        function calculateOptionsYield() {
+            if (state.emails < 1000000) return 0;
+            return Math.floor(150 * Math.sqrt(state.emails / 1000000));
+        }
+
+        function triggerStrategicRestructure() {
+            let yieldOptions = calculateOptionsYield();
+            if (yieldOptions < 1) return;
+
+            if (confirm(`Sign restructuring paperwork? You will pocket +${yieldOptions} Stock Options.`)) {
+                state.stockOptions += yieldOptions;
+                state.emails = 0;
+                Object.keys(state.upgrades).forEach(key => state.upgrades[key].count = 0);
+                Object.keys(state.automation).forEach(key => state.automation[key].count = 0);
+                saveGame(false); buildUpgradeUI(); buildAchievementUI(); updateUI();
+            }
+        }
+
+        function getBulkDetails(item, key) {
+            let cost = 0, amount = 0, qty = state.buyQuantity;
+            let baseCostPrice = item.baseCost;
+            if (state.perks.onboarding.bought && ['intern', 'buzzword', 'manager'].includes(key)) {
+                baseCostPrice *= 0.9;
+            }
+            if (qty === 'max') {
+                while (true) {
+                    let nextCost = baseCostPrice * Math.pow(item.scale, item.count + amount);
+                    if (cost + nextCost <= state.emails) { cost += nextCost; amount++; } else { break; }
+                }
+                if (amount === 0) { cost = baseCostPrice * Math.pow(item.scale, item.count); amount = 1; }
+            } else {
+                amount = parseInt(qty) || 1;
+                for (let i = 0; i < amount; i++) cost += baseCostPrice * Math.pow(item.scale, item.count + i);
+            }
+            return { cost: Math.floor(cost), amount: amount };
+        }
+
+        function getAchievementMultiplier() {
+            let totalMultiplier = 1;
+            Object.keys(state.upgrades).forEach(key => {
+                let currentCount = state.upgrades[key].count;
+                MILESTONE_STEPS.forEach(step => { if (currentCount >= step.count) totalMultiplier += step.bonus; });
+            });
+            Object.keys(state.automation).forEach(key => {
+                let currentCount = state.automation[key].count;
+                MILESTONE_STEPS.forEach(step => { if (currentCount >= step.count) totalMultiplier += step.bonus; });
+            });
+            return totalMultiplier;
+        }
+
+        function getGlobalPrestigeMultiplier() {
+            return 1 + (state.stockOptions * 0.02);
+        }
+
+        function getEmailsPerSecond() {
+            let baseCps = Object.values(state.automation).reduce((sum, item) => sum + (item.count * item.cps), 0);
+            return baseCps * getAchievementMultiplier() * getGlobalPrestigeMultiplier();
+        }
+
+        function getEmailsPerClick() {
+            let rawClickValue = Object.keys(state.upgrades).reduce((sum, key) => sum + (state.upgrades[key].count * state.upgrades[key].power), 0);
+            if (state.perks.synergyTraining.bought) { rawClickValue *= 2; }
+            let totalClickPower = (1 + rawClickValue) * getGlobalPrestigeMultiplier();
+            if (activeBuffs.coffeeRush > 0) totalClickPower *= 5;
+            return totalClickPower;
+        }
+
+        function spawnRandomEvent() {
+            if (currentActiveEvent) return;
+            const eventTypes = [
+                { id: 'client_request', title: '🔴 Urgent Client Request', body: 'A vital client needs answers immediately! Click to resolve and get bonus output.', color: 'var(--brand-blue)', duration: 8000 },
+                { id: 'coffee_rush', title: '☕ HR Coffee Break', body: 'HR loaded the breakroom! Click to grab a double shot cup for a temporary 5x click power buff.', color: 'var(--brand-green)', duration: 8000 }
+            ];
+            const chosen = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+            currentActiveEvent = chosen;
+
+            const toast = document.getElementById('event-toast');
+            document.getElementById('event-title').textContent = chosen.title;
+            document.getElementById('event-body').textContent = chosen.body;
+            toast.style.borderLeftColor = chosen.color;
+            const progressbar = document.getElementById('event-progressbar');
+            progressbar.style.backgroundColor = chosen.color; progressbar.style.transitionDuration = '0s'; progressbar.style.width = '100%';
+
+            setTimeout(() => {
+                toast.classList.add('active'); progressbar.style.transitionProperty = 'width';
+                progressbar.style.transitionTimingFunction = 'linear'; progressbar.style.transitionDuration = `${chosen.duration}ms`; progressbar.style.width = '0%';
+            }, 50);
+            chosen.timerRef = setTimeout(() => { expireActiveEvent(); }, chosen.duration);
+        }
+
+        function expireActiveEvent() {
+            if (!currentActiveEvent) return;
+            document.getElementById('event-toast').classList.remove('active');
+            clearTimeout(currentActiveEvent.timerRef); currentActiveEvent = null;
+        }
+
+        window.clickEventNotification = function() {
+            if (!currentActiveEvent) return;
+            if (currentActiveEvent.id === 'client_request') {
+                let reward = Math.max(150, getEmailsPerSecond() * 30);
+                if (state.perks.goldenParachute.bought) reward *= 1.5;
+                state.emails += reward; state.lifetimeEmails += reward;
+            } else if (currentActiveEvent.id === 'coffee_rush') {
+                activeBuffs.coffeeRush = 15;
+            }
+            expireActiveEvent(); evaluateAchievements(); updateUI();
+        };
+
+        function evaluateAchievements() {
+            let changesOccurred = false;
+            const checkCategory = (dict) => {
+                Object.keys(dict).forEach(key => {
+                    let count = dict[key].count;
+                    MILESTONE_STEPS.forEach(step => {
+                        let uniqueId = `${key}_${step.count}`;
+                        if (count >= step.count && !state.unlockedMilestones[uniqueId]) {
+                            state.unlockedMilestones[uniqueId] = true; changesOccurred = true;
+                        }
+                    });
+                });
+            };
+            checkCategory(state.upgrades); checkCategory(state.automation);
+            if (changesOccurred) { buildAchievementUI(); updateUI(); }
+        }
+
+        function getJobTitleAndTicker() {
+            let title = "Trainee Intern";
+            let tickerText = HEADLINE_REVO_BANKS[0];
+            let life = state.lifetimeEmails;
+            let opt = state.stockOptions;
+
+            if (opt >= 50) { title = "Interdimensional CEO"; tickerText = HEADLINE_REVO_BANKS[2]; }
+            else if (opt >= 5) { title = "Managing Partner"; tickerText = HEADLINE_REVO_BANKS[2]; }
+            else if (life >= 1000000) { title = "Senior VP of Synergy"; tickerText = HEADLINE_REVO_BANKS[1]; }
+            else if (life >= 100000) { title = "Regional Sync Specialist"; tickerText = HEADLINE_REVO_BANKS[1]; }
+            else if (life >= 5000) { title = "Full-Time Associate"; tickerText = HEADLINE_REVO_BANKS[0]; }
+            
+            return { title, tickerText };
+        }
+
+        function buildPerksUI() {
+            const container = document.getElementById('executive-perks-container');
+            container.innerHTML = '';
+            Object.keys(state.perks).forEach(key => {
+                let perk = state.perks[key];
+                container.innerHTML += `
+                    <div class="upgrade-card" style="border-color: #e2e8f0; margin-bottom:0.5rem; padding: 0.75rem;">
+                        <div class="upgrade-info">
+                            <h4 style="font-size:0.85rem; color:var(--text-primary);">${perk.name} ${perk.bought ? '✅' : ''}</h4>
+                            <p style="font-size:0.75rem; color:var(--text-secondary);">${perk.desc}</p>
+                        </div>
+                        <button class="upgrade-btn" style="background-color:var(--brand-purple); min-width:90px; padding:0.4rem;" 
+                                id="perk-btn-${key}" onclick="buyExecutivePolicy('${key}')" ${perk.bought ? 'disabled' : ''}>
+                            ${perk.bought ? 'Adopted' : 'Policy (' + perk.cost + ')'}
+                        </button>
+                    </div>`;
+            });
+        }
+
+        window.buyExecutivePolicy = function(key) {
+            let perk = state.perks[key];
+            if (!perk.bought && state.stockOptions >= perk.cost) {
+                state.stockOptions -= perk.cost;
+                perk.bought = true;
+                buildPerksUI();
+                updateUI();
+            }
+        };
+
+        function buildAchievementUI() {
+            const groups = { active: document.getElementById('group-active'), passive: document.getElementById('group-passive') };
+            if(groups.active) groups.active.innerHTML = ''; if(groups.passive) groups.passive.innerHTML = '';
+
+            const renderBadges = (dict, targetElement) => {
+                Object.keys(dict).forEach(key => {
+                    let item = dict[key];
+                    if (item.count > 0 && targetElement) {
+                        MILESTONE_STEPS.forEach(step => {
+                            let uniqueId = `${key}_${step.count}`;
+                            let isUnlocked = state.unlockedMilestones[uniqueId] === true;
+                            targetElement.innerHTML += `<div class="ach-badge ${isUnlocked ? 'unlocked' : ''}" data-tooltip="${item.name} ${step.display}: Pack ${step.count}. Yields: +${(step.bonus * 100).toFixed(1)}% Passives.">${isUnlocked ? '🏆' : '🔒'} ${item.name} ${step.display}</div>`;
+                        });
+                    }
+                });
+            };
+            renderBadges(state.upgrades, groups.active); renderBadges(state.automation, groups.passive);
+            if (groups.active && groups.active.innerHTML === '') groups.active.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); font-style:italic;">Complete training paths to unlock awards.</div>';
+            if (groups.passive && groups.passive.innerHTML === '') groups.passive.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); font-style:italic;">Expand staffing branches to unlock logs.</div>';
+        }
+
+        function buildUpgradeUI() {
+            const activeContainer = document.getElementById('active-upgrades-container'); const passiveContainer = document.getElementById('passive-upgrades-container');
+            activeContainer.innerHTML = ''; passiveContainer.innerHTML = '';
+
+            const renderCategory = (dict, container, type) => {
+                const keys = Object.keys(dict);
+                keys.forEach((key, index) => {
+                    let isVisible = false;
+                    if (index === 0) isVisible = true;
+                    else if (dict[keys[index - 1]].count > 0) isVisible = true;
+
+                    if (isVisible) {
+                        container.innerHTML += `<div class="upgrade-card" id="card-${key}"><div class="upgrade-info"><h3 id="name-${key}">---</h3><p>${dict[key].desc}</p></div><button class="upgrade-btn" id="btn-${key}" onclick="buyItem('${key}', '${type}')">Buy</button></div>`;
+                    }
+                });
+            };
+            renderCategory(state.upgrades, activeContainer, 'upgrade'); renderCategory(state.automation, passiveContainer, 'automation');
+        }
+
+        window.buyItem = function(key, type) {
+            let dict = type === 'upgrade' ? state.upgrades : state.automation;
+            let details = getBulkDetails(dict[key], key);
+            if (state.emails >= details.cost) {
+                state.emails -= details.cost; dict[key].count += details.amount;
+                evaluateAchievements(); buildUpgradeUI(); updateUI();
+            }
+        };
+
+        window.setMultiplier = function(qty) {
+            state.buyQuantity = qty.toString();
+            document.querySelectorAll('.mult-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`mult-${qty}`).classList.add('active');
+            updateUI();
+        };
+
+        function updateUI() {
+            document.getElementById('email-count').textContent = Math.floor(state.emails).toLocaleString();
+            
+            let baseCps = Object.values(state.automation).reduce((sum, item) => sum + (item.count * item.cps), 0);
+            let currentMultiplier = getAchievementMultiplier();
+            let totalCps = getEmailsPerSecond();
+            let bonusPassiveCps = totalCps - baseCps;
+
+            document.getElementById('cps-display').textContent = `${totalCps.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} emails / sec (+${bonusPassiveCps.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} passive)`;
+            document.getElementById('cpc-display').textContent = `${getEmailsPerClick().toLocaleString(undefined, {maximumFractionDigits: 0})} per click`;
+
+            let totalBonusPercent = ((currentMultiplier - 1) * 100).toFixed(1);
+            document.getElementById('cabinet-multiplier-readout').textContent = `Total Efficiency Multiplier: +${totalBonusPercent}% Passive Emails`;
+
+            let reviewConfig = getJobTitleAndTicker();
+            document.getElementById('job-title-badge').textContent = reviewConfig.title;
+            document.getElementById('news-ticker').textContent = reviewConfig.tickerText;
+
+            // NEW: DYNAMIC HIDDEN CONDITIONAL WRAPPER CHECK
+            const prestigeWrapper = document.getElementById('prestige-wrapper');
+            if (state.lifetimeEmails >= 800000 || state.stockOptions > 0) {
+                prestigeWrapper.style.display = 'block';
+            } else {
+                prestigeWrapper.style.display = 'none';
+            }
+
+            let claimableOptions = calculateOptionsYield();
+            document.getElementById('prestige-portfolio-title').textContent = `Stock Options Portfolio: ${state.stockOptions.toLocaleString()} (+${(state.stockOptions * 2)}% Global Power)`;
+            document.getElementById('prestige-lifetime-counter').textContent = `Career Lifetime Output: ${Math.floor(state.lifetimeEmails).toLocaleString()} emails`;
+            
+            const actionBtn = document.getElementById('prestige-action-btn');
+            actionBtn.disabled = state.emails < 1000000;
+            actionBtn.textContent = state.emails < 1000000 ? "Restructure (Needs 1M)" : `Restructure (+${claimableOptions})`;
+
+            Object.keys(state.perks).forEach(key => {
+                let btn = document.getElementById(`perk-btn-${key}`);
+                if (btn && !state.perks[key].bought) btn.disabled = state.stockOptions < state.perks[key].cost;
+            });
+
+            const buffBox = document.getElementById('buff-box'); buffBox.innerHTML = '';
+            if (activeBuffs.coffeeRush > 0) buffBox.innerHTML += `<div class="buff-pill positive">⚡ COFFEE RUSH (${activeBuffs.coffeeRush}s)</div>`;
+
+            const refreshCards = (dict) => {
+                Object.keys(dict).forEach(key => {
+                    let details = getBulkDetails(dict[key], key);
+                    let titleEl = document.getElementById('name-' + key); let btn = document.getElementById('btn-' + key);
+                    if (titleEl && btn) {
+                        titleEl.textContent = `${dict[key].name} (${dict[key].count})`;
+                        btn.disabled = state.emails < details.cost;
+                        btn.textContent = state.buyQuantity === 'max' ? `Buy +${details.amount} (${details.cost.toLocaleString()})` : `Buy x${details.amount} (${details.cost.toLocaleString()})`;
+                    }
+                });
+            };
+            refreshCards(state.upgrades); refreshCards(state.automation);
+        }
+
+        window.debugAddCurrency = function(amt) { state.emails += amt; state.lifetimeEmails += amt; evaluateAchievements(); updateUI(); };
+        window.stockOptions = function(amt) { state.stockOptions += amt; updateUI(); };
+        window.debugAddOptions = function(amt) { state.stockOptions += amt; updateUI(); };
+        window.debugUnlockAllAchievements = function() {
+            const forceCategory = (dict) => { Object.keys(dict).forEach(key => { MILESTONE_STEPS.forEach(step => { state.unlockedMilestones[`${key}_${step.count}`] = true; }); }); };
+            forceCategory(state.upgrades); forceCategory(state.automation); buildAchievementUI(); updateUI();
+        };
+
+        document.getElementById('click-btn').addEventListener('click', () => {
+            let clickAmt = getEmailsPerClick(); state.emails += clickAmt; state.lifetimeEmails += clickAmt; evaluateAchievements(); updateUI();
+        });
+
+        setInterval(() => {
+            let cps = getEmailsPerSecond();
+            if (cps > 0) { state.emails += (cps / 10); state.lifetimeEmails += (cps / 10); evaluateAchievements(); updateUI(); }
+        }, 100);
+
+        setInterval(() => { if (activeBuffs.coffeeRush > 0) { activeBuffs.coffeeRush--; updateUI(); } }, 1000);
+        setInterval(() => { if (!currentActiveEvent && Math.random() < 0.35) spawnRandomEvent(); }, 50000);
+        setInterval(() => { saveGame(true); }, 15000);
+
+        loadGame(); buildUpgradeUI(); buildAchievementUI(); buildPerksUI(); updateUI();
+    </script>
+</body>
+</html>
