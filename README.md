@@ -4,7 +4,7 @@
 
 Attention all Workforce Assets,
 
-The Executive Committee is thrilled to announce the deployment of **Patch 0.9.4**. Following a comprehensive internal audit of our digital workstation infrastructure, we have eliminated several silent operational bottlenecks and introduced highly disruptive corporate crises to maximize employee focus (and anxiety). 
+The Executive Committee is thrilled to announce the deployment of **Patch 0.9.3**. Following a comprehensive internal audit of our digital workstation infrastructure, we have eliminated several silent operational bottlenecks and introduced highly disruptive corporate crises to maximize employee focus (and anxiety). 
 
 Please review your mandatory optimization brief below.
 
