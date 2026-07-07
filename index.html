@@ -77,7 +77,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-between; /* Pushes the center workspace up and the cabinet down */
+            justify-content: space-between;
             padding: 2rem;
             overflow-y: auto;
         }
@@ -190,7 +190,7 @@
 
         /* Cabinet Layout */
         .cabinet-box {
-            width: 100%; max-width: 440px; margin-top: auto; /* Secures placement firmly at the bottom of the workstation panel */
+            width: 100%; max-width: 440px; margin-top: auto; 
             border: 1px solid var(--border-color); border-radius: 8px; background-color: #f8fafc; overflow: hidden;
         }
         .cabinet-header {
@@ -211,7 +211,6 @@
         .cabinet-sub-section { margin-bottom: 1rem; }
         .cabinet-sub-section:last-child { margin-bottom: 0; }
         
-        /* Collapsible Sub-headers inside Cabinet */
         .cabinet-sub-header {
             display: flex; justify-content: space-between; align-items: center;
             background-color: #f1f5f9; border: 1px solid var(--border-color); border-radius: 4px;
@@ -320,7 +319,7 @@
     </div>
 
     <header>
-        <h1>Office Clicker <span style="color: var(--text-muted); font-weight: 300; font-size: 1rem;">v0.9.2</span></h1>
+        <h1>Office Clicker <span style="color: var(--text-muted); font-weight: 300; font-size: 1rem;">v0.9.3</span></h1>
         <div style="display: flex; align-items: center; gap: 1rem;">
             <span id="save-status" style="font-size: 0.8rem; color: var(--text-muted);"></span>
             <div class="tagline">"Per my last email..."</div>
@@ -328,6 +327,7 @@
     </header>
 
     <div class="dashboard">
+        <!-- Left Side Dashboard Workstation Area -->
         <div class="workstation">
             <div class="center-workspace">
                 <div class="buff-container" id="buff-box"></div>
@@ -344,6 +344,7 @@
                 <button class="click-btn" id="click-btn">Send Email</button>
             </div>
 
+            <!-- PERFORMANCE CABINET -->
             <div class="cabinet-box">
                 <div class="cabinet-header" onclick="toggleCabinet()">
                     <span class="cabinet-title">🏆 Corporate Performance Cabinet</span>
@@ -354,6 +355,7 @@
                         Total Efficiency Multiplier: +0% Passive Emails
                     </div>
 
+                    <!-- SUB-SECTION 1: DEPARTMENTAL ASSETS -->
                     <div class="cabinet-sub-section">
                         <div class="cabinet-sub-header" onclick="toggleCabinetSubSection('sub-content-tooling', 'sub-icon-tooling')">
                             <div class="cabinet-sub-title">Departmental Assets (Owned Tooling)</div>
@@ -364,6 +366,7 @@
                         </div>
                     </div>
 
+                    <!-- SUB-SECTION 2: PERSONAL DEVELOPMENT -->
                     <div class="cabinet-sub-section">
                         <div class="cabinet-sub-header" onclick="toggleCabinetSubSection('sub-content-active', 'sub-icon-active')">
                             <div class="cabinet-sub-title">Personal Development Awards (Clicking)</div>
@@ -374,6 +377,7 @@
                         </div>
                     </div>
 
+                    <!-- SUB-SECTION 3: WORKFORCE RECORDS -->
                     <div class="cabinet-sub-section">
                         <div class="cabinet-sub-header" onclick="toggleCabinetSubSection('sub-content-passive', 'sub-icon-passive')">
                             <div class="cabinet-sub-title">Workforce Infrastructure Records (Idle)</div>
@@ -387,6 +391,7 @@
             </div>
         </div>
 
+        <!-- Right Side Dashboard Controls / Store -->
         <div class="directory">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                 <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">PROCUREMENT SETTINGS</span>
@@ -397,6 +402,7 @@
                 </div>
             </div>
 
+            <!-- EXECUTIVE SUITE (PRESTIGE) -->
             <div id="prestige-wrapper" style="display: none;">
                 <div class="collapsible-header" onclick="toggleSection('prestige-section', 'icon-prestige')" style="background-color: #f5f3ff; border-color: #ddd6fe;">
                     <h2 class="section-title" style="color: #6d28d9;">💼 Executive Suite (Prestige)</h2>
@@ -423,6 +429,7 @@
                 </div>
             </div>
 
+            <!-- Store Panels -->
             <div class="collapsible-header" onclick="toggleSection('active-section', 'icon-active')">
                 <h2 class="section-title">Personal Development (Click Upgrades)</h2>
                 <span class="collapse-icon" id="icon-active">▼</span>
@@ -447,6 +454,7 @@
                 <div id="passive-upgrades-container"></div>
             </div>
 
+            <!-- Dev Debug Console Systems -->
             <div class="system-controls">
                 <div class="sys-btn-row">
                     <button class="sys-btn" onclick="clearSave()">Wipe Progress (HR Reset)</button>
@@ -473,7 +481,7 @@
         <div class="toast-timer" id="event-progressbar"></div>
     </div>
 
-    <script>
+    <script {text/javascript}>
         // --- CORE STATE ---
         const DEFAULT_STATE = {
             emails: 0,
@@ -596,16 +604,13 @@
         // --- MATH UTILITIES ENGINE ---
         function formatCorporateNumbers(num) {
             if (num < 1000000) return Math.floor(num).toLocaleString();
-            
             const suffixes = [" Million", " Billion", " Trillion", " Quadrillion", " Quintillion", " Sextillion"];
             let temp = num / 1000000;
             let idx = 0;
-            
             while (temp >= 100 && idx < suffixes.length - 1) {
                 temp /= 100;
                 idx++;
             }
-            
             return temp.toFixed(2) + suffixes[idx];
         }
 
@@ -694,16 +699,16 @@
             let clickAmt = getStaticClickPower();
             let triggeredCrit = false;
             
+            // OPTIMIZED ROLL LOOP: Rolls exactly once per click, scaled by volume held
             const pptCount = state.upgrades.pptPedant.count;
             if (pptCount > 0) {
-                let randomRollBonus = 0;
-                for (let i = 0; i < pptCount; i++) {
-                    let individualRoll = Math.floor(Math.random() * 4) + 1;
-                    if (individualRoll === 4) {
-                        triggeredCrit = true; 
-                    }
-                    randomRollBonus += individualRoll;
+                let singleRoll = Math.floor(Math.random() * 4) + 1;
+                if (singleRoll === 4) {
+                    triggeredCrit = true; 
                 }
+                
+                // Scale the single roll by how many pedants you own
+                let randomRollBonus = singleRoll * pptCount;
                 
                 let adjustedBonus = randomRollBonus * getGlobalPrestigeMultiplier();
                 if (state.boardStore.nutrientSlop && state.boardStore.nutrientSlop.boughtCount > 0) {
@@ -1170,7 +1175,6 @@
             }
         };
 
-        // NEW COLLAPSIBLE CONTROLLER: Manages independent internal cabinet sub-sections
         window.toggleCabinetSubSection = function(contentId, iconId) {
             const content = document.getElementById(contentId);
             const icon = document.getElementById(iconId);
