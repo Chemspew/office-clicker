@@ -30,9 +30,9 @@ A dynamic crisis engine has been integrated directly into your Outlook notificat
 * **Typo Mitigation:** A critical data boundary typo (`activeCrisis`) missing an explicit comma delimiter in the state engine declaration blocks has been successfully patched out, returning the console to full compliance.
 
 ### 🏆 Many, Many, Many More Milestones to Unlock
-* **Think you got all the milestones? Think again, buddy.
-* **Sure, you get a pat on the back for owning 1, 5, 10 and 50 of each upgrade, but let's stop acting like a newly hired intern. 
-* **Trophies for 100, 500, 1000 and each 500 increment up to 5,000. Happy Clicking!
+* Think you got all the milestones? Think again, buddy.
+* Sure, you get a pat on the back for owning 1, 5, 10 and 50 of each upgrade, but let's stop acting like a newly hired intern. 
+* Trophies for 100, 500, 1000 and each 500 increment up to 5,000. Happy Clicking!
 
 ---
 
