@@ -126,7 +126,7 @@
         }
         .cabinet-header {
             background-color: #f1f5f9; padding: 0.75rem 1rem; display: flex;
-            justify-content: space-between; align-items: center; cursor: pointer;
+            justify-content: space-between; align-items: center; pointer;
             user-select: none; border-bottom: 1px solid var(--border-color);
         }
         .cabinet-title { font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
@@ -238,7 +238,7 @@
     </div>
 
     <header>
-        <h1>Office Clicker <span style="color: var(--text-muted); font-weight: 300; font-size: 1rem;">v1.1.3</span></h1>
+        <h1>Office Clicker <span style="color: var(--text-muted); font-weight: 300; font-size: 1rem;">v0.6.9</span></h1>
         <div style="display: flex; align-items: center; gap: 1rem;">
             <span id="save-status" style="font-size: 0.8rem; color: var(--text-muted);"></span>
             <div class="tagline">"Per my last email..."</div>
@@ -298,9 +298,8 @@
                 </div>
             </div>
 
-            <!-- NEW: DYNAMIC WRAPPER TO HIDE UNTIL CLOSE TO 1M OUTCOME -->
+            <!-- EXECUTIVE SUITE (PRESTIGE) -->
             <div id="prestige-wrapper" style="display: none;">
-                <!-- EXECUTIVE SUITE (PRESTIGE) -->
                 <div class="collapsible-header" onclick="toggleSection('prestige-section', 'icon-prestige')" style="background-color: #f5f3ff; border-color: #ddd6fe;">
                     <h2 class="section-title" style="color: #6d28d9;">💼 Executive Suite (Prestige)</h2>
                     <span class="collapse-icon" id="icon-prestige" style="color: #6d28d9;">▼</span>
@@ -318,8 +317,11 @@
                         </div>
                     </div>
 
-                    <div style="margin-top: 1rem; margin-bottom: 0.5rem; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Executive Policies Unlocked</div>
+                    <div style="margin-top: 1rem; margin-bottom: 0.5rem; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Executive Policies (Upgradable Trees)</div>
                     <div id="executive-perks-container"></div>
+
+                    <div style="margin-top: 1rem; margin-bottom: 0.5rem; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Permanent Board Purchases (Spend Options)</div>
+                    <div id="executive-store-container"></div>
                 </div>
             </div>
 
@@ -352,7 +354,8 @@
                     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                         <button class="debug-btn" onclick="debugAddCurrency(100000)">+100K Emails</button>
                         <button class="debug-btn" onclick="debugAddCurrency(1000000)">+1M Emails</button>
-                        <button class="debug-btn" onclick="debugAddOptions(500)">+500 Options</button>
+                        <button class="debug-btn" onclick="debugAddCurrency(100000000000)">+100B Emails</button>
+                        <button class="debug-btn" onclick="debugAddOptions(25000)">+25K Options</button>
                         <button class="debug-btn" onclick="debugUnlockAllAchievements()">Insta-Unlock Badges</button>
                     </div>
                 </div>
@@ -367,6 +370,19 @@
     </div>
 
     <script>
+        // --- NEW: ABBREVIATION ENGINE ---
+        function formatCorporateNumbers(num) {
+            if (num < 1000000) return Math.floor(num).toLocaleString();
+            const suffixes = [" Million", " Billion", " Trillion", " Quadrillion", " Quintillion", " Sextillion"];
+            let idx = -1;
+            let temp = num;
+            while (temp >= 1000000 && idx < suffixes.length - 1) {
+                temp /= 1000000;
+                idx++;
+            }
+            return temp.toFixed(2) + suffixes[idx];
+        }
+
         const DEFAULT_STATE = {
             emails: 0,
             lifetimeEmails: 0,
@@ -375,13 +391,17 @@
             
             upgrades: {
                 coldBrew: { name: "Drink Cold Brew", count: 0, baseCost: 50, scale: 1.2, power: 1, desc: "Hyper-caffeinate. Adds +1 per click." },
+                pptPedant: { name: "Powerpoint Pedant", count: 0, baseCost: 250, scale: 1.2, power: 0, desc: "Fix alignment issues. Adds a random +1 to +23 per click." },
                 keyMacros: { name: "Keyboard Macros", count: 0, baseCost: 500, scale: 1.25, power: 5, desc: "Macro-paste jargon. Adds +5 per click." },
                 replyAll: { name: "Reply All Habits", count: 0, baseCost: 4000, scale: 1.3, power: 25, desc: "Target the whole directory. Adds +25 per click." },
                 perMyLast: { name: "\"Per My Last Email\"", count: 0, baseCost: 25000, scale: 1.3, power: 150, desc: "Shut down arguments instantly. Adds +150 per click." },
                 dualMonitor: { name: "Dual Monitor Array", count: 0, baseCost: 175000, scale: 1.35, power: 750, desc: "Twice as fast, twice as dangerous. Adds +750 per click." },
                 buzzwordBingo: { name: "Corporate Bingo", count: 0, baseCost: 1500000, scale: 1.4, power: 4000, desc: "Synergize and pivot smoothly. Adds +4,000 per click." },
                 iphoneSig: { name: "iPhone Signature", count: 0, baseCost: 12500000, scale: 1.4, power: 22000, desc: "Type 'Thx' from a cafe window. Adds +22,000 per click." },
-                linkedInThought: { name: "LinkedIn Thought Leader", count: 0, baseCost: 95000000, scale: 1.45, power: 120000, desc: "Post structural B2B essays. Adds +120,000 per click." }
+                linkedInThought: { name: "LinkedIn Thought Leader", count: 0, baseCost: 95000000, scale: 1.45, power: 120000, desc: "Post structural B2B essays. Adds +120,000 per click." },
+                aiPrompt: { name: "AI Prompt Optimization", count: 0, baseCost: 850000000, scale: 1.45, power: 650000, desc: "Perfect context strings. Adds +650,000 per click." },
+                vrBoardroom: { name: "VR Boardroom Headset", count: 0, baseCost: 6200000000, scale: 1.5, power: 4000000, desc: "Review charts in 3D grid layouts. Adds +4M per click." },
+                quantumSynergy: { name: "Quantum Synergy Node", count: 0, baseCost: 55000000000, scale: 1.5, power: 30000000, desc: "Send logs through parallel dimensions. Adds +30M per click." }
             },
             
             automation: {
@@ -391,14 +411,23 @@
                 slackBot: { name: "Urgent Slack Bot", count: 0, baseCost: 8500, scale: 1.18, cps: 45.0, desc: "Pings 'Any updates?' constantly. +45.0 emails/sec." },
                 dataAnalyst: { name: "Data Analyst", count: 0, baseCost: 65000, scale: 1.2, cps: 260.0, desc: "Generates massive unread slide decks. +260.0 emails/sec." },
                 steeringComm: { name: "Steering Committee", count: 0, baseCost: 500000, scale: 1.22, cps: 1800.0, desc: "Schedule syncs to plan future syncs. +1,800.0 emails/sec." },
-                consultants: { name: "External Consultants", count: 0, baseCost: 4500000, scale: 1.25, cps: 11500.0, desc: "Repackage data onto flashier charts. +11,500.0 emails/sec." },
+                consultants: { name: "External Consultants", count: 4, baseCost: 4500000, scale: 1.25, cps: 11500.0, desc: "Repackage data onto flashier charts. +11,500.0 emails/sec." },
                 synergyAI: { name: "Synergy Matrix AI", count: 0, baseCost: 40000000, scale: 1.28, cps: 75000.0, desc: "Spams enterprise nodes globally. +75,000.0 emails/sec." },
-                restructure: { name: "Global Restructure", count: 0, baseCost: 350000000, scale: 1.3, cps: 450000.0, desc: "Complete ecosystem reorganization. +450,000.0 emails/sec." }
+                restructure: { name: "Global Restructure", count: 0, baseCost: 350000000, scale: 1.3, cps: 450000.0, desc: "Complete ecosystem reorganization. +450,000.0 emails/sec." },
+                dataCenter: { name: "Offshore Data Center", count: 0, baseCost: 2800000000, scale: 1.32, cps: 2500000.0, desc: "Server arrays firing data nonstop. +2.5M emails/sec." },
+                matrixBoard: { name: "Synergy Matrix Board", count: 0, baseCost: 22000000000, scale: 1.35, cps: 15000000.0, desc: "Holographic hivemind syncing 24/7. +15M emails/sec." },
+                parentCo: { name: "Interdimensional Parent Co", count: 0, baseCost: 180000000000, scale: 1.38, cps: 90000000.0, desc: "Funnel data streams across the multiverse. +90M emails/sec." }
             },
             perks: {
-                goldenParachute: { name: "Golden Parachute", bought: false, cost: 50, desc: "+50% yield output from Urgent Client Requests." },
-                synergyTraining: { name: "Synergy Training", bought: false, cost: 150, desc: "Permanently doubles base click power multipliers." },
-                onboarding: { name: "Automated Onboarding", bought: false, cost: 500, desc: "Tiers 1-3 automation bases start 10% cheaper." }
+                goldenParachute: { name: "Golden Parachute", currentTier: 0, maxTier: 1, baseCost: 50, costScale: 1, desc: "+50% yield output from Urgent Client Requests." },
+                synergyTraining: { name: "Synergy Training", currentTier: 0, maxTier: 3, baseCost: 150, costScale: 3, desc: "Each tier permanently doubles base click power value calculations." },
+                onboarding: { name: "Automated Onboarding", currentTier: 0, maxTier: 3, baseCost: 200, costScale: 2.5, desc: "Each tier drops automation tiers 1-3 infrastructure entry costs by 10%." }
+            },
+            boardStore: {
+                taxHaven: { name: "Tax Haven Routing", bought: false, cost: 750, desc: "Permanently slashes cost scales exponent factor by 4% globally." },
+                takeover: { name: "Corporate Takeover Matrix", bought: false, cost: 2500, desc: "Grants a flat scaling click multiplier linked to option volume reserves." },
+                // NEW OPTION: NUTRIENT SLOP
+                nutrientSlop: { name: "Glugging Down the Nutrient Slop", boughtCount: 0, cost: 10000, desc: "Refuse lunch breaks. Permanently doubles ALL emails generated per click." }
             },
             unlockedMilestones: {} 
         };
@@ -417,7 +446,7 @@
         const HEADLINE_REVO_BANKS = [
             "BREAKROOM TOASTER DECLARED ACTIVE BIOHAZARD; HR INITIATES INVESTIGATION ... REPETITIVE STRAIN INJURY DISCUSSIONS POSTPONED DUE TO LACK OF AGENDA ... MICROWAVING FISH IN THE COMMONS CONTINUES TO DRAW PASSIVE AGGRESSIVE POST-IT NOTES",
             "LOCAL COFFEE SHOP REPORTS RECORD-BREAKING QUARTERLY SURGE DUE TO A SINGLE OUTLOOK DRONE ... SLACK BOT ACCIDENTALLY GAINS SENTIENCE, IMMEDIATELY ASKS FOR HIGHER HOURLY EXPERIENCE RATES ... ENDLESS STATUS SYNCS DECLARED A 'VALUABLE PILLAR OF STAKEHOLDER CULTURE'",
-            "SYNERGY MATRIX AI ACCIDENTALLY FIRES ENTIRE GLOBAL BOARD OF DIRECTORS; OPERATIONAL EFFICIENCY CLIMBS BY 400% ... GLOBAL RESTRUCTURE SHIFTS MARKETING INTIATIVE TO THE CLOUD TRANS-DIMENSIONAL MATRIX ... INBOX EXPANDS PAST LOGICAL SYSTEM CAPACITIES; FOREVER COALESCING TEXT COMMENCING"
+            "QUANTUM DATA FABRIC COLLAPSING UNDER EMIT LOAD ... SYNERGY MATRIX AI ACCIDENTALLY FIRES ENTIRE GLOBAL BOARD OF DIRECTORS; OPERATIONAL EFFICIENCY CLIMBS BY 400% ... GLOBAL RESTRUCTURE SHIFTS MARKETING INTIATIVE TO THE CLOUD TRANS-DIMENSIONAL MATRIX ... INTERDIMENSIONAL LEADS AGREE SYNCS ARE OPTIMAL"
         ];
 
         window.toggleSection = function(contentId, iconId) {
@@ -442,7 +471,6 @@
                 panel.style.display = 'none';
                 return;
             }
-            
             let keyPhrase = prompt("ENTER OVERRIDE ENCRYPTION PASSPHRASE:");
             if (keyPhrase === "vibe-coding-2026") {
                 panel.style.display = 'block';
@@ -461,7 +489,22 @@
                     if(parsed.stockOptions !== undefined) state.stockOptions = parsed.stockOptions;
                     for(let key in parsed.upgrades) if(state.upgrades[key]) state.upgrades[key].count = parsed.upgrades[key].count;
                     for(let key in parsed.automation) if(state.automation[key]) state.automation[key].count = parsed.automation[key].count;
-                    for(let key in parsed.perks) if(state.perks[key]) state.perks[key].bought = parsed.perks[key].bought;
+                    if (parsed.perks) {
+                        for(let key in parsed.perks) {
+                            if(state.perks[key]) state.perks[key].currentTier = parsed.perks[key].currentTier || 0;
+                        }
+                    }
+                    if (parsed.boardStore) {
+                        for(let key in parsed.boardStore) {
+                            if(state.boardStore[key]) {
+                                if (key === 'nutrientSlop') {
+                                    state.boardStore.nutrientSlop.boughtCount = parsed.boardStore.nutrientSlop.boughtCount || 0;
+                                } else {
+                                    state.boardStore[key].bought = parsed.boardStore[key].bought || false;
+                                }
+                            }
+                        }
+                    }
                     if(parsed.unlockedMilestones) state.unlockedMilestones = parsed.unlockedMilestones;
                 } catch(e) { console.error("Error configuration on data loading.", e); }
             }
@@ -482,6 +525,7 @@
                 buildUpgradeUI();
                 buildAchievementUI();
                 buildPerksUI();
+                buildExecutiveStoreUI();
                 updateUI();
             }
         }
@@ -507,18 +551,22 @@
         function getBulkDetails(item, key) {
             let cost = 0, amount = 0, qty = state.buyQuantity;
             let baseCostPrice = item.baseCost;
-            if (state.perks.onboarding.bought && ['intern', 'buzzword', 'manager'].includes(key)) {
-                baseCostPrice *= 0.9;
+            if (state.perks.onboarding.currentTier > 0 && ['intern', 'buzzword', 'manager'].includes(key)) {
+                baseCostPrice *= (1 - (state.perks.onboarding.currentTier * 0.10));
+            }
+            let finalScaleExponent = item.scale;
+            if (state.boardStore.taxHaven.bought) {
+                finalScaleExponent = 1 + ((item.scale - 1) * 0.96);
             }
             if (qty === 'max') {
                 while (true) {
-                    let nextCost = baseCostPrice * Math.pow(item.scale, item.count + amount);
+                    let nextCost = baseCostPrice * Math.pow(finalScaleExponent, item.count + amount);
                     if (cost + nextCost <= state.emails) { cost += nextCost; amount++; } else { break; }
                 }
-                if (amount === 0) { cost = baseCostPrice * Math.pow(item.scale, item.count); amount = 1; }
+                if (amount === 0) { cost = baseCostPrice * Math.pow(finalScaleExponent, item.count); amount = 1; }
             } else {
                 amount = parseInt(qty) || 1;
-                for (let i = 0; i < amount; i++) cost += baseCostPrice * Math.pow(item.scale, item.count + i);
+                for (let i = 0; i < amount; i++) cost += baseCostPrice * Math.pow(finalScaleExponent, item.count + i);
             }
             return { cost: Math.floor(cost), amount: amount };
         }
@@ -549,6 +597,12 @@
             let rawClickValue = Object.keys(state.upgrades).reduce((sum, key) => sum + (state.upgrades[key].count * state.upgrades[key].power), 0);
             if (state.perks.synergyTraining.bought) { rawClickValue *= 2; }
             let totalClickPower = (1 + rawClickValue) * getGlobalPrestigeMultiplier();
+            
+            // Apply Nutrient Slop Doubling Factor
+            if (state.boardStore.nutrientSlop && state.boardStore.nutrientSlop.boughtCount > 0) {
+                totalClickPower *= Math.pow(2, state.boardStore.nutrientSlop.boughtCount);
+            }
+
             if (activeBuffs.coffeeRush > 0) totalClickPower *= 5;
             return totalClickPower;
         }
@@ -619,6 +673,7 @@
 
             if (opt >= 50) { title = "Interdimensional CEO"; tickerText = HEADLINE_REVO_BANKS[2]; }
             else if (opt >= 5) { title = "Managing Partner"; tickerText = HEADLINE_REVO_BANKS[2]; }
+            else if (life >= 1000000000) { title = "Multiversal Synergy Director"; tickerText = HEADREVO_BANKS[2]; }
             else if (life >= 1000000) { title = "Senior VP of Synergy"; tickerText = HEADLINE_REVO_BANKS[1]; }
             else if (life >= 100000) { title = "Regional Sync Specialist"; tickerText = HEADLINE_REVO_BANKS[1]; }
             else if (life >= 5000) { title = "Full-Time Associate"; tickerText = HEADLINE_REVO_BANKS[0]; }
@@ -631,15 +686,17 @@
             container.innerHTML = '';
             Object.keys(state.perks).forEach(key => {
                 let perk = state.perks[key];
+                let currentCost = perk.baseCost * Math.pow(perk.costScale, perk.currentTier);
+                let isMaxed = perk.currentTier >= perk.maxTier;
                 container.innerHTML += `
                     <div class="upgrade-card" style="border-color: #e2e8f0; margin-bottom:0.5rem; padding: 0.75rem;">
                         <div class="upgrade-info">
-                            <h4 style="font-size:0.85rem; color:var(--text-primary);">${perk.name} ${perk.bought ? '✅' : ''}</h4>
+                            <h4 style="font-size:0.85rem; color:var(--text-primary);">${perk.name} (Tier ${perk.currentTier}/${perk.maxTier})</h4>
                             <p style="font-size:0.75rem; color:var(--text-secondary);">${perk.desc}</p>
                         </div>
                         <button class="upgrade-btn" style="background-color:var(--brand-purple); min-width:90px; padding:0.4rem;" 
-                                id="perk-btn-${key}" onclick="buyExecutivePolicy('${key}')" ${perk.bought ? 'disabled' : ''}>
-                            ${perk.bought ? 'Adopted' : 'Policy (' + perk.cost + ')'}
+                                id="perk-btn-${key}" onclick="buyExecutivePolicy('${key}')" ${isMaxed ? 'disabled' : ''}>
+                            ${isMaxed ? 'Max Level' : 'Adopt (' + formatCorporateNumbers(Math.floor(currentCost)) + ')'}
                         </button>
                     </div>`;
             });
@@ -647,11 +704,60 @@
 
         window.buyExecutivePolicy = function(key) {
             let perk = state.perks[key];
-            if (!perk.bought && state.stockOptions >= perk.cost) {
-                state.stockOptions -= perk.cost;
-                perk.bought = true;
+            let currentCost = Math.floor(perk.baseCost * Math.pow(perk.costScale, perk.currentTier));
+            if (perk.currentTier < perk.maxTier && state.stockOptions >= currentCost) {
+                state.stockOptions -= currentCost;
+                perk.currentTier++;
                 buildPerksUI();
                 updateUI();
+            }
+        };
+
+        function buildExecutiveStoreUI() {
+            const container = document.getElementById('executive-store-container');
+            container.innerHTML = '';
+            Object.keys(state.boardStore).forEach(key => {
+                let node = state.boardStore[key];
+                
+                // Calculate dynamic cost scaling for Slop or flat pricing for singular nodes
+                let cost = node.cost;
+                let titleAppend = "";
+                if (key === 'nutrientSlop') {
+                    cost = Math.floor(node.cost * Math.pow(1.7, node.boughtCount));
+                    titleAppend = ` (${node.boughtCount})`;
+                }
+
+                container.innerHTML += `
+                    <div class="upgrade-card" style="border-color: #ddd6fe; margin-bottom:0.5rem; padding: 0.75rem; background-color: #fcfaff;">
+                        <div class="upgrade-info">
+                            <h4 style="font-size:0.85rem; color: #5b21b6;">${node.name}${titleAppend}</h4>
+                            <p style="font-size:0.75rem; color:var(--text-secondary);">${node.desc}</p>
+                        </div>
+                        <button class="upgrade-btn" style="background-color: #6d28d9; min-width:90px; padding:0.4rem;" 
+                                id="board-store-btn-${key}" onclick="buyPermanentAsset('${key}')" ${(node.bought) ? 'disabled' : ''}>
+                            ${(node.bought) ? 'Purchased' : 'Buy (' + formatCorporateNumbers(cost) + ')'}
+                        </button>
+                    </div>`;
+            });
+        }
+
+        window.buyPermanentAsset = function(key) {
+            let node = state.boardStore[key];
+            if (key === 'nutrientSlop') {
+                let dynamicCost = Math.floor(node.cost * Math.pow(1.7, node.boughtCount));
+                if (state.stockOptions >= dynamicCost) {
+                    state.stockOptions -= dynamicCost;
+                    node.boughtCount++;
+                    buildExecutiveStoreUI();
+                    updateUI();
+                }
+            } else {
+                if (!node.bought && state.stockOptions >= node.cost) {
+                    state.stockOptions -= node.cost;
+                    node.bought = true;
+                    buildExecutiveStoreUI();
+                    updateUI();
+                }
             }
         };
 
@@ -666,7 +772,7 @@
                         MILESTONE_STEPS.forEach(step => {
                             let uniqueId = `${key}_${step.count}`;
                             let isUnlocked = state.unlockedMilestones[uniqueId] === true;
-                            targetElement.innerHTML += `<div class="ach-badge ${isUnlocked ? 'unlocked' : ''}" data-tooltip="${item.name} ${step.display}: Pack ${step.count}. Yields: +${(step.bonus * 100).toFixed(1)}% Passives.">${isUnlocked ? '🏆' : '🔒'} ${item.name} ${step.display}</div>`;
+                            targetElement.innerHTML += `<div class="ach-badge ${isUnlocked ? 'unlocked' : ''}" data-tooltip="${item.name} ${step.display}: Own ${step.count}. Yields: +${(step.bonus * 100).toFixed(1)}% Passives.">${isUnlocked ? '🏆' : '🔒'} ${item.name} ${step.display}</div>`;
                         });
                     }
                 });
@@ -712,15 +818,16 @@
         };
 
         function updateUI() {
-            document.getElementById('email-count').textContent = Math.floor(state.emails).toLocaleString();
+            // --- UPDATED ABBREVIATION DISPLAYS TRANSLATORS ---
+            document.getElementById('email-count').textContent = formatCorporateNumbers(state.emails);
             
             let baseCps = Object.values(state.automation).reduce((sum, item) => sum + (item.count * item.cps), 0);
             let currentMultiplier = getAchievementMultiplier();
             let totalCps = getEmailsPerSecond();
             let bonusPassiveCps = totalCps - baseCps;
 
-            document.getElementById('cps-display').textContent = `${totalCps.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} emails / sec (+${bonusPassiveCps.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} passive)`;
-            document.getElementById('cpc-display').textContent = `${getEmailsPerClick().toLocaleString(undefined, {maximumFractionDigits: 0})} per click`;
+            document.getElementById('cps-display').textContent = `${formatCorporateNumbers(totalCps)} emails / sec (+${formatCorporateNumbers(bonusPassiveCps)} passive)`;
+            document.getElementById('cpc-display').textContent = `${formatCorporateNumbers(getEmailsPerClick())} per click`;
 
             let totalBonusPercent = ((currentMultiplier - 1) * 100).toFixed(1);
             document.getElementById('cabinet-multiplier-readout').textContent = `Total Efficiency Multiplier: +${totalBonusPercent}% Passive Emails`;
@@ -729,7 +836,6 @@
             document.getElementById('job-title-badge').textContent = reviewConfig.title;
             document.getElementById('news-ticker').textContent = reviewConfig.tickerText;
 
-            // NEW: DYNAMIC HIDDEN CONDITIONAL WRAPPER CHECK
             const prestigeWrapper = document.getElementById('prestige-wrapper');
             if (state.lifetimeEmails >= 800000 || state.stockOptions > 0) {
                 prestigeWrapper.style.display = 'block';
@@ -739,15 +845,33 @@
 
             let claimableOptions = calculateOptionsYield();
             document.getElementById('prestige-portfolio-title').textContent = `Stock Options Portfolio: ${state.stockOptions.toLocaleString()} (+${(state.stockOptions * 2)}% Global Power)`;
-            document.getElementById('prestige-lifetime-counter').textContent = `Career Lifetime Output: ${Math.floor(state.lifetimeEmails).toLocaleString()} emails`;
+            document.getElementById('prestige-lifetime-counter').textContent = `Career Lifetime Output: ${formatCorporateNumbers(state.lifetimeEmails)} emails`;
             
             const actionBtn = document.getElementById('prestige-action-btn');
             actionBtn.disabled = state.emails < 1000000;
             actionBtn.textContent = state.emails < 1000000 ? "Restructure (Needs 1M)" : `Restructure (+${claimableOptions})`;
 
             Object.keys(state.perks).forEach(key => {
+                let perk = state.perks[key];
                 let btn = document.getElementById(`perk-btn-${key}`);
-                if (btn && !state.perks[key].bought) btn.disabled = state.stockOptions < state.perks[key].cost;
+                let currentCost = Math.floor(perk.baseCost * Math.pow(perk.costScale, perk.currentTier));
+                if (btn && perk.currentTier < perk.maxTier) {
+                    btn.disabled = state.stockOptions < currentCost;
+                }
+            });
+
+            Object.keys(state.boardStore).forEach(key => {
+                let btn = document.getElementById(`board-store-btn-${key}`);
+                let node = state.boardStore[key];
+                if (btn) {
+                    let cost = node.cost;
+                    if (key === 'nutrientSlop') {
+                        cost = Math.floor(node.cost * Math.pow(1.7, node.boughtCount));
+                        btn.disabled = state.stockOptions < cost;
+                    } else {
+                        if (!node.bought) btn.disabled = state.stockOptions < cost;
+                    }
+                }
             });
 
             const buffBox = document.getElementById('buff-box'); buffBox.innerHTML = '';
@@ -760,7 +884,7 @@
                     if (titleEl && btn) {
                         titleEl.textContent = `${dict[key].name} (${dict[key].count})`;
                         btn.disabled = state.emails < details.cost;
-                        btn.textContent = state.buyQuantity === 'max' ? `Buy +${details.amount} (${details.cost.toLocaleString()})` : `Buy x${details.amount} (${details.cost.toLocaleString()})`;
+                        btn.textContent = state.buyQuantity === 'max' ? `Buy +${details.amount} (${formatCorporateNumbers(details.cost)})` : `Buy x${details.amount} (${formatCorporateNumbers(details.cost)})`;
                     }
                 });
             };
@@ -768,7 +892,6 @@
         }
 
         window.debugAddCurrency = function(amt) { state.emails += amt; state.lifetimeEmails += amt; evaluateAchievements(); updateUI(); };
-        window.stockOptions = function(amt) { state.stockOptions += amt; updateUI(); };
         window.debugAddOptions = function(amt) { state.stockOptions += amt; updateUI(); };
         window.debugUnlockAllAchievements = function() {
             const forceCategory = (dict) => { Object.keys(dict).forEach(key => { MILESTONE_STEPS.forEach(step => { state.unlockedMilestones[`${key}_${step.count}`] = true; }); }); };
@@ -788,7 +911,7 @@
         setInterval(() => { if (!currentActiveEvent && Math.random() < 0.35) spawnRandomEvent(); }, 50000);
         setInterval(() => { saveGame(true); }, 15000);
 
-        loadGame(); buildUpgradeUI(); buildAchievementUI(); buildPerksUI(); updateUI();
+        loadGame(); buildUpgradeUI(); buildAchievementUI(); buildPerksUI(); buildExecutiveStoreUI(); updateUI();
     </script>
 </body>
 </html>
