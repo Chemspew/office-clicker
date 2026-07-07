@@ -37,5 +37,3 @@ A dynamic crisis engine has been integrated directly into your Outlook notificat
 ---
 
 > ⚠️ **REMINDER FROM HR:** Ignoring a QBR choice window before its progress indicator expires will result in an automatic default ruling in favor of Option A. Please sign off on these changes and return to sending emails immediately.
-
-*Let us know how your local workstation handles the civil wars! What are we filing paperwork for next—automated management bots?*
