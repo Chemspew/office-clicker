@@ -1,6 +1,6 @@
 # CHANGELOG.md
 
-## 📋 [v0.9.4] — "The Boardroom & Bottlenecks Update"
+## 📋 [v0.9.3] — "The Boardroom & Bottlenecks Update"
 
 Attention all Workforce Assets,
 
