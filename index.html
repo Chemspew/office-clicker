@@ -319,7 +319,7 @@
     </div>
 
     <header>
-        <h1>Office Clicker <span style="color: var(--text-muted); font-weight: 300; font-size: 1rem;">v0.9.5</span></h1>
+        <h1>Office Clicker <span style="color: var(--text-muted); font-weight: 300; font-size: 1rem;">v0.9.7</span></h1>
         <div style="display: flex; align-items: center; gap: 1rem;">
             <span id="save-status" style="font-size: 0.8rem; color: var(--text-muted);"></span>
             <div class="tagline">"Per my last email..."</div>
@@ -578,6 +578,7 @@
 
         let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
         let shadowTally = 0; 
+        let residualDecimalAccumulator = 0; // Fixed underflow precision-loss aggregation buffer
         let currentActiveEvent = null;
         let activeBuffs = { coffeeRush: 0 };
         let coffeeRushMaxDuration = 15;
@@ -608,7 +609,11 @@
 
         // --- INTERNAL SECURITY AUDITOR ---
         function runInternalLedgerAudit() {
-            if (state.emails > shadowTally + 5000000000 && shadowTally > 0) {
+            let currentCps = getEmailsPerSecond();
+            // Dynamic check window allows current true passives + clicking velocity headroom
+            let maxExpectedGain = (currentCps * 2.5) + (getStaticClickPower() * 60) + 5000000000;
+            
+            if (state.emails > shadowTally + maxExpectedGain && shadowTally > 0) {
                 state.emails = shadowTally; 
                 spawnJuiceParticle(window.innerWidth / 2, window.innerHeight / 3, "⚠️ AUDIT DISCREPANCY REVERSED", true);
             } else {
@@ -643,12 +648,13 @@
 
         // --- MATH UTILITIES ENGINE ---
         function formatCorporateNumbers(num) {
-            if (isNaN(num)) return "0";
+            if (isNaN(num) || !isFinite(num)) return "0";
             if (num < 1000000) return Math.floor(num).toLocaleString();
             const suffixes = [
                 " Million", " Billion", " Trillion", " Quadrillion", " Quintillion", 
                 " Sextillion", " Septillion", " Octillion", " Nonillion", " Decillion", 
-                " Undecillion", " Duodecillion", " Tredecillion", " Quattuordecillion", " Quindecillion"
+                " Undecillion", " Duodecillion", " Tredecillion", " Quattuordecillion", " Quindecillion",
+                " Sexdecillion", " Septendecillion", " Octodecillion", " Novemdecillion", " Vigintillion"
             ];
             let temp = num / 1000000;
             let idx = 0;
@@ -820,7 +826,7 @@
             updateUI();
         }
 
-        function triggerStrategicRestructure() {
+        window.triggerStrategicRestructure = function() {
             let yieldOptions = calculateOptionsYield();
             if (yieldOptions < 1) return;
 
@@ -828,6 +834,7 @@
                 state.stockOptions += yieldOptions;
                 state.emails = 0;
                 shadowTally = 0;
+                residualDecimalAccumulator = 0;
                 Object.keys(state.upgrades).forEach(key => state.upgrades[key].count = 0);
                 Object.keys(state.automation).forEach(key => state.automation[key].count = 0);
                 Object.keys(state.automationUpgrades).forEach(key => state.automationUpgrades[key].bought = false);
@@ -837,7 +844,7 @@
                 buildAchievementUI(); 
                 updateUI();
             }
-        }
+        };
 
         function evaluateAchievements() {
             let changesOccurred = false;
@@ -903,7 +910,7 @@
                     },
                     {
                         id: 'board_audit', title: '🚨 QBR: Surprise Board Audit!',
-                        body: 'An unannounced regional execution visit is live. Balance your expenditure ledgers:',
+                        body: 'An unannounced regional visit is live. Balance your expenditure ledgers:',
                         btnA: 'Fudge Books (-20% Emails)', btnB: 'Austerity (+300% costs / +10% CPS)',
                         color: 'var(--brand-gold)', duration: 10000, effectDuration: 60
                     },
@@ -1389,7 +1396,6 @@
                         if(parsed.lifetimeEmails !== undefined) state.lifetimeEmails = parsed.lifetimeEmails;
                         if(parsed.stockOptions !== undefined) state.stockOptions = parsed.stockOptions;
                         
-                        // Self-healing legacy parse hooks
                         for(let key in parsed.upgrades) {
                             if(state.upgrades[key]) {
                                 let source = parsed.upgrades[key];
@@ -1425,6 +1431,7 @@
                         }
                         if(parsed.unlockedMilestones) state.unlockedMilestones = parsed.unlockedMilestones;
                         shadowTally = state.emails;
+                        residualDecimalAccumulator = 0;
                     } catch(e) { console.error("Error formatting layout on save alignment.", e); }
                 }
             }
@@ -1449,6 +1456,7 @@
                 localStorage.removeItem('office_clicker_save');
                 state = JSON.parse(JSON.stringify(DEFAULT_STATE));
                 shadowTally = 0;
+                residualDecimalAccumulator = 0;
                 activeBuffs = { coffeeRush: 0 };
                 buildUpgradeUI();
                 buildDeptUpgradeUI();
@@ -1488,8 +1496,21 @@
         setInterval(() => {
             let cps = getEmailsPerSecond();
             if (cps > 0) { 
-                state.emails += (cps / 10); 
-                state.lifetimeEmails += (cps / 10); 
+                let frameIncrement = (cps / 10);
+                
+                // Aggregation filter combats floating-point truncation ceilings at Quindecillions
+                if (state.emails > 1e16 && frameIncrement < state.emails * 1e-15) {
+                    residualDecimalAccumulator += frameIncrement;
+                    if (residualDecimalAccumulator >= state.emails * 1e-14 || residualDecimalAccumulator >= 1000000) {
+                        state.emails += residualDecimalAccumulator;
+                        state.lifetimeEmails += residualDecimalAccumulator;
+                        residualDecimalAccumulator = 0;
+                    }
+                } else {
+                    state.emails += frameIncrement; 
+                    state.lifetimeEmails += frameIncrement; 
+                }
+                
                 evaluateAchievements(); 
                 updateUI(); 
             }
