@@ -319,7 +319,7 @@
     </div>
 
     <header>
-        <h1>Office Clicker <span style="color: var(--text-muted); font-weight: 300; font-size: 1rem;">v0.9.4</span></h1>
+        <h1>Office Clicker <span style="color: var(--text-muted); font-weight: 300; font-size: 1rem;">v0.9.5</span></h1>
         <div style="display: flex; align-items: center; gap: 1rem;">
             <span id="save-status" style="font-size: 0.8rem; color: var(--text-muted);"></span>
             <div class="tagline">"Per my last email..."</div>
@@ -479,6 +479,26 @@
     </div>
 
     <script type="text/javascript">
+    (function() {
+        // --- CORE DATA PROTECTION MATRIX ---
+        const ENCRYPTION_SALT = "CorpAudit_2026_";
+        
+        function secureEncrypt(obj) {
+            try {
+                return btoa(encodeURIComponent(ENCRYPTION_SALT + JSON.stringify(obj)));
+            } catch(e) { return null; }
+        }
+
+        function secureDecrypt(cipher) {
+            try {
+                const raw = decodeURIComponent(atob(cipher));
+                if (raw.startsWith(ENCRYPTION_SALT)) {
+                    return JSON.parse(raw.slice(ENCRYPTION_SALT.length));
+                }
+            } catch(e) {}
+            return null;
+        }
+
         // --- CORE STATE ---
         const DEFAULT_STATE = {
             emails: 0,
@@ -557,6 +577,7 @@
         };
 
         let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+        let shadowTally = 0; 
         let currentActiveEvent = null;
         let activeBuffs = { coffeeRush: 0 };
         let coffeeRushMaxDuration = 15;
@@ -585,6 +606,16 @@
             "QUANTUM DATA FABRIC COLLAPSING UNDER EMIT LOAD ... SYNERGY MATRIX AI ACCIDENTALLY FIRES ENTIRE GLOBAL BOARD OF DIRECTORS; OPERATIONAL EFFICIENCY CLIMBS BY 400% ... GLOBAL RESTRUCTURE SHIFTS MARKETING INTIATIVE TO THE CLOUD TRANS-DIMENSIONAL MATRIX ... INTERDIMENSIONAL LEADS AGREE SYNCS ARE OPTIMAL"
         ];
 
+        // --- INTERNAL SECURITY AUDITOR ---
+        function runInternalLedgerAudit() {
+            if (state.emails > shadowTally + 5000000000 && shadowTally > 0) {
+                state.emails = shadowTally; 
+                spawnJuiceParticle(window.innerWidth / 2, window.innerHeight / 3, "⚠️ AUDIT DISCREPANCY REVERSED", true);
+            } else {
+                shadowTally = state.emails;
+            }
+        }
+
         // --- VISUAL JUICE UTILITY ENGINE ---
         function spawnJuiceParticle(x, y, text, isCrit = false) {
             const particle = document.createElement('div');
@@ -612,6 +643,7 @@
 
         // --- MATH UTILITIES ENGINE ---
         function formatCorporateNumbers(num) {
+            if (isNaN(num)) return "0";
             if (num < 1000000) return Math.floor(num).toLocaleString();
             const suffixes = [
                 " Million", " Billion", " Trillion", " Quadrillion", " Quintillion", 
@@ -634,9 +666,9 @@
             if (state.perks.onboarding.currentTier > 0 && ['intern', 'buzzword', 'manager'].includes(key)) {
                 baseCostPrice *= (1 - (state.perks.onboarding.currentTier * 0.10));
             }
-
+            
             if (state.activeCrisis && state.activeCrisis.id === 'board_audit' && state.activeCrisis.choice === 'B') {
-                baseCostPrice *= 4; // 300% cost spike
+                baseCostPrice *= 4; 
             }
 
             let finalScaleExponent = item.scale;
@@ -670,11 +702,11 @@
         function getAchievementMultiplier() {
             let totalMultiplier = 1;
             Object.keys(state.upgrades).forEach(key => {
-                let currentCount = state.upgrades[key].count;
+                let currentCount = state.upgrades[key].count || 0;
                 MILESTONE_STEPS.forEach(step => { if (currentCount >= step.count) totalMultiplier += step.bonus; });
             });
             Object.keys(state.automation).forEach(key => {
-                let currentCount = state.automation[key].count;
+                let currentCount = state.automation[key].count || 0;
                 MILESTONE_STEPS.forEach(step => { if (currentCount >= step.count) totalMultiplier += step.bonus; });
             });
             return totalMultiplier;
@@ -690,7 +722,7 @@
                 let multiplier = 1;
                 if (state.automationUpgrades[`${key}_t1`]?.bought) multiplier += 0.20;
                 if (state.automationUpgrades[`${key}_t2`]?.bought) multiplier += 0.50;
-                return sum + (item.count * item.cps * multiplier);
+                return sum + ((item.count || 0) * item.cps * multiplier);
             }, 0);
             
             let totalCps = baseCps * getAchievementMultiplier() * getGlobalPrestigeMultiplier();
@@ -706,7 +738,7 @@
                         let mult = 1;
                         if (state.automationUpgrades[`${key}_t1`]?.bought) mult += 0.20;
                         if (state.automationUpgrades[`${key}_t2`]?.bought) mult += 0.50;
-                        let yieldVal = item.count * item.cps * mult;
+                        let yieldVal = (item.count || 0) * item.cps * mult;
                         
                         if (key === 'buzzword') yieldVal *= 10; 
                         if (key === 'slackBot') yieldVal = 0;   
@@ -721,7 +753,7 @@
 
         function getStaticClickPower() {
             let rawClickValue = Object.keys(state.upgrades).reduce((sum, key) => {
-                return sum + (state.upgrades[key].count * state.upgrades[key].power);
+                return sum + ((state.upgrades[key].count || 0) * state.upgrades[key].power);
             }, 0);
 
             if (state.perks.synergyTraining.currentTier > 0) {
@@ -754,7 +786,7 @@
             let clickAmt = getStaticClickPower();
             let triggeredCrit = false;
             
-            const pptCount = state.upgrades.pptPedant.count;
+            const pptCount = state.upgrades.pptPedant.count || 0;
             if (pptCount > 0) {
                 let singleRoll = Math.floor(Math.random() * 4) + 1;
                 if (singleRoll === 4) {
@@ -772,6 +804,7 @@
 
             state.emails += clickAmt; 
             state.lifetimeEmails += clickAmt; 
+            shadowTally = state.emails;
             
             let spawnX = e.clientX || window.innerWidth / 4;
             let spawnY = e.clientY || window.innerHeight / 2;
@@ -794,6 +827,7 @@
             if (confirm(`Sign restructuring paperwork? You will pocket +${yieldOptions} Stock Options.`)) {
                 state.stockOptions += yieldOptions;
                 state.emails = 0;
+                shadowTally = 0;
                 Object.keys(state.upgrades).forEach(key => state.upgrades[key].count = 0);
                 Object.keys(state.automation).forEach(key => state.automation[key].count = 0);
                 Object.keys(state.automationUpgrades).forEach(key => state.automationUpgrades[key].bought = false);
@@ -809,7 +843,7 @@
             let changesOccurred = false;
             const checkCategory = (dict) => {
                 Object.keys(dict).forEach(key => {
-                    let count = dict[key].count;
+                    let count = dict[key].count || 0;
                     MILESTONE_STEPS.forEach(step => {
                         let uniqueId = `${key}_${step.count}`;
                         if (count >= step.count && !state.unlockedMilestones[uniqueId]) {
@@ -936,6 +970,7 @@
                 }
                 state.emails += reward;
                 state.lifetimeEmails += reward;
+                shadowTally = state.emails;
                 spawnJuiceParticle(window.innerWidth - 200, window.innerHeight - 100, `+${formatCorporateNumbers(reward)}`, true);
             } else if (currentActiveEvent.id === 'coffee_rush') {
                 activeBuffs.coffeeRush = coffeeRushMaxDuration;
@@ -960,7 +995,7 @@
                 state.emails *= 0.85; 
             }
             if (crisis.id === 'phishing_trap' && choiceCharacter === 'B') {
-                state.automation.intern.count = Math.max(0, state.automation.intern.count - 3); 
+                state.automation.intern.count = Math.max(0, (state.automation.intern.count || 0) - 3); 
                 buildUpgradeUI();
             }
             if (crisis.id === 'board_audit' && choiceCharacter === 'A') {
@@ -970,6 +1005,7 @@
                 state.emails *= 0.75; 
             }
 
+            shadowTally = state.emails;
             evaluateAchievements();
             updateUI();
         };
@@ -1050,7 +1086,7 @@
                 let upgrade = state.automationUpgrades[key];
                 let parentAsset = state.automation[upgrade.target];
                 
-                if (parentAsset.count >= upgrade.reqCount && !upgrade.bought) {
+                if ((parentAsset.count || 0) >= upgrade.reqCount && !upgrade.bought) {
                     visibleCount++;
                     container.innerHTML += `
                         <div class="upgrade-card" id="card-dept-${key}">
@@ -1075,6 +1111,7 @@
             let upgrade = state.automationUpgrades[key];
             if (state.emails >= upgrade.cost && !upgrade.bought) {
                 state.emails -= upgrade.cost;
+                shadowTally = state.emails;
                 upgrade.bought = true;
                 spawnJuiceParticle(window.innerWidth / 2, window.innerHeight / 2, "🛠️ TOOLING COMPLIANT!", true);
                 buildDeptUpgradeUI();
@@ -1096,7 +1133,8 @@
             const renderBadges = (dict, targetElement) => {
                 Object.keys(dict).forEach(key => {
                     let item = dict[key];
-                    if (item.count > 0 && targetElement) {
+                    let count = item.count || 0;
+                    if (count > 0 && targetElement) {
                         MILESTONE_STEPS.forEach(step => {
                             let uniqueId = `${key}_${step.count}`;
                             let isUnlocked = state.unlockedMilestones[uniqueId] === true;
@@ -1135,7 +1173,7 @@
                 keys.forEach((key, index) => {
                     let isVisible = false;
                     if (index === 0) isVisible = true;
-                    else if (dict[keys[index - 1]].count > 0) isVisible = true;
+                    else if ((dict[keys[index - 1]].count || 0) > 0) isVisible = true;
 
                     if (isVisible) {
                         container.innerHTML += `<div class="upgrade-card" id="card-${key}"><div class="upgrade-info"><h3 id="name-${key}">---</h3><p>${dict[key].desc}</p></div><button class="upgrade-btn" id="btn-${key}" onclick="buyItem('${key}', '${type}')">Buy</button></div>`;
@@ -1182,7 +1220,8 @@
             let details = getBulkDetails(dict[key], key);
             if (state.emails >= details.cost) {
                 state.emails -= details.cost; 
-                dict[key].count += details.amount;
+                shadowTally = state.emails;
+                dict[key].count = (dict[key].count || 0) + details.amount;
                 evaluateAchievements(); 
                 buildUpgradeUI(); 
                 buildDeptUpgradeUI(); 
@@ -1200,7 +1239,7 @@
         function updateUI() {
             document.getElementById('email-count').textContent = formatCorporateNumbers(state.emails);
             
-            let baseCps = Object.values(state.automation).reduce((sum, item) => sum + (item.count * item.cps), 0);
+            let baseCps = Object.values(state.automation).reduce((sum, item) => sum + ((item.count || 0) * item.cps), 0);
             let currentMultiplier = getAchievementMultiplier();
             let totalCps = getEmailsPerSecond();
             let bonusPassiveCps = totalCps - baseCps;
@@ -1208,7 +1247,7 @@
             document.getElementById('cps-display').textContent = `${formatCorporateNumbers(totalCps)} emails / sec (+${formatCorporateNumbers(bonusPassiveCps)} passive)`;
             
             let currentDisplayClickPower = getStaticClickPower();
-            if (state.upgrades.pptPedant.count > 0) {
+            if ((state.upgrades.pptPedant.count || 0) > 0) {
                 document.getElementById('cpc-display').textContent = `${formatCorporateNumbers(currentDisplayClickPower)} + Random Roll per click`;
             } else {
                 document.getElementById('cpc-display').textContent = `${formatCorporateNumbers(currentDisplayClickPower)} per click`;
@@ -1285,10 +1324,10 @@
                 }
             }
 
-            document.querySelectorAll('#dept-upgrades-container .upgrade-btn').forEach(btn => {
-                let key = btn.id.replace('btn-dept-', '');
+            Object.keys(state.automationUpgrades).forEach(key => {
                 let upgrade = state.automationUpgrades[key];
-                if (upgrade) btn.disabled = state.emails < upgrade.cost;
+                let btn = document.getElementById(`btn-dept-${key}`);
+                if (btn) btn.disabled = state.emails < upgrade.cost;
             });
 
             const refreshCards = (dict) => {
@@ -1297,7 +1336,7 @@
                     let titleEl = document.getElementById('name-' + key); 
                     let btn = document.getElementById('btn-' + key);
                     if (titleEl && btn) {
-                        titleEl.textContent = `${dict[key].name} (${dict[key].count})`;
+                        titleEl.textContent = `${dict[key].name} (${dict[key].count || 0})`;
                         btn.disabled = state.emails < details.cost;
                         btn.textContent = state.buyQuantity === 'max' ? `Buy +${details.amount} (${formatCorporateNumbers(details.cost)})` : `Buy x${details.amount} (${formatCorporateNumbers(details.cost)})`;
                     }
@@ -1339,41 +1378,65 @@
         function loadGame() {
             const savedData = localStorage.getItem('office_clicker_save');
             if (savedData) {
-                try {
-                    const parsed = JSON.parse(savedData);
-                    if(parsed.emails !== undefined) state.emails = parsed.emails;
-                    if(parsed.lifetimeEmails !== undefined) state.lifetimeEmails = parsed.lifetimeEmails;
-                    if(parsed.stockOptions !== undefined) state.stockOptions = parsed.stockOptions;
-                    for(let key in parsed.upgrades) if(state.upgrades[key]) state.upgrades[key].count = parsed.upgrades[key].count;
-                    for(let key in parsed.automation) if(state.automation[key]) state.automation[key].count = parsed.automation[key].count;
-                    if (parsed.automationUpgrades) {
-                        for(let key in parsed.automationUpgrades) {
-                            if(state.automationUpgrades[key]) state.automationUpgrades[key].bought = parsed.automationUpgrades[key].bought || false;
+                let parsed = secureDecrypt(savedData);
+                if (!parsed) {
+                    try { parsed = JSON.parse(savedData); } catch(e) {}
+                }
+                
+                if (parsed) {
+                    try {
+                        if(parsed.emails !== undefined) state.emails = parsed.emails;
+                        if(parsed.lifetimeEmails !== undefined) state.lifetimeEmails = parsed.lifetimeEmails;
+                        if(parsed.stockOptions !== undefined) state.stockOptions = parsed.stockOptions;
+                        
+                        // Self-healing legacy parse hooks
+                        for(let key in parsed.upgrades) {
+                            if(state.upgrades[key]) {
+                                let source = parsed.upgrades[key];
+                                state.upgrades[key].count = (typeof source === 'object' && source !== null) ? (source.count || 0) : (Number(source) || 0);
+                            }
                         }
-                    }
-                    if (parsed.perks) {
-                        for(let key in parsed.perks) {
-                            if(state.perks[key]) state.perks[key].currentTier = parsed.perks[key].currentTier || 0;
+                        for(let key in parsed.automation) {
+                            if(state.automation[key]) {
+                                let source = parsed.automation[key];
+                                state.automation[key].count = (typeof source === 'object' && source !== null) ? (source.count || 0) : (Number(source) || 0);
+                            }
                         }
-                    }
-                    if (parsed.boardStore) {
-                        for(let key in parsed.boardStore) {
-                            if(state.boardStore[key]) {
-                                if (key === 'nutrientSlop') {
-                                    state.boardStore.nutrientSlop.boughtCount = parsed.boardStore.nutrientSlop.boughtCount || 0;
-                                } else {
-                                    state.boardStore[key].bought = parsed.boardStore[key].bought || false;
+                        if (parsed.automationUpgrades) {
+                            for(let key in parsed.automationUpgrades) {
+                                if(state.automationUpgrades[key]) state.automationUpgrades[key].bought = parsed.automationUpgrades[key].bought || false;
+                            }
+                        }
+                        if (parsed.perks) {
+                            for(let key in parsed.perks) {
+                                if(state.perks[key]) state.perks[key].currentTier = parsed.perks[key].currentTier || 0;
+                            }
+                        }
+                        if (parsed.boardStore) {
+                            for(let key in parsed.boardStore) {
+                                if(state.boardStore[key]) {
+                                    if (key === 'nutrientSlop') {
+                                        state.boardStore.nutrientSlop.boughtCount = parsed.boardStore.nutrientSlop.boughtCount || 0;
+                                    } else {
+                                        state.boardStore[key].bought = parsed.boardStore[key].bought || false;
+                                    }
                                 }
                             }
                         }
-                    }
-                    if(parsed.unlockedMilestones) state.unlockedMilestones = parsed.unlockedMilestones;
-                } catch(e) { console.error("Error configuration on data loading.", e); }
+                        if(parsed.unlockedMilestones) state.unlockedMilestones = parsed.unlockedMilestones;
+                        shadowTally = state.emails;
+                    } catch(e) { console.error("Error formatting layout on save alignment.", e); }
+                }
             }
         }
 
         function saveGame(isAuto = true) {
-            localStorage.setItem('office_clicker_save', JSON.stringify(state));
+            const encryptedPayload = secureEncrypt(state);
+            if (encryptedPayload) {
+                localStorage.setItem('office_clicker_save', encryptedPayload);
+            } else {
+                localStorage.setItem('office_clicker_save', JSON.stringify(state));
+            }
             const statusEl = document.getElementById('save-status');
             if (statusEl) {
                 statusEl.textContent = isAuto ? "Autosaved..." : "Progress Saved!";
@@ -1385,6 +1448,7 @@
             if(confirm("Wipe career progress data? Everything resets.")) {
                 localStorage.removeItem('office_clicker_save');
                 state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+                shadowTally = 0;
                 activeBuffs = { coffeeRush: 0 };
                 buildUpgradeUI();
                 buildDeptUpgradeUI();
@@ -1411,7 +1475,7 @@
             }
         };
 
-        window.debugAddCurrency = function(amt) { state.emails += amt; state.lifetimeEmails += amt; evaluateAchievements(); buildDeptUpgradeUI(); updateUI(); };
+        window.debugAddCurrency = function(amt) { state.emails += amt; state.lifetimeEmails += amt; shadowTally = state.emails; evaluateAchievements(); buildDeptUpgradeUI(); updateUI(); };
         window.debugAddOptions = function(amt) { state.stockOptions += amt; updateUI(); };
         window.debugUnlockAllAchievements = function() {
             const forceCategory = (dict) => { Object.keys(dict).forEach(key => { MILESTONE_STEPS.forEach(step => { state.unlockedMilestones[`${key}_${step.count}`] = true; }); }); };
@@ -1443,6 +1507,7 @@
                     buildUpgradeUI(); 
                 }
             }
+            runInternalLedgerAudit(); 
             updateUI();
         }, 1000);
 		
@@ -1457,6 +1522,7 @@
         buildPerksUI(); 
         buildExecutiveStoreUI(); 
         updateUI();
+    })();
     </script>
 </body>
 </html>

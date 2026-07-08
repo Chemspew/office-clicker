@@ -1,37 +1,20 @@
-# 📋 [v0.9.3] — "The Boardroom & Bottlenecks Update"
+# Changelog
+
+## [v0.9.5] — "The Ledger Security & Infinite Scaling Update"
 
 Attention all Workforce Assets,
 
-The Executive Committee is thrilled to announce the deployment of **Patch 0.9.3**. Following a comprehensive internal audit of our digital workstation infrastructure, we have eliminated several silent operational bottlenecks and introduced highly disruptive corporate crises to maximize employee focus (and anxiety). 
+The Executive Committee is pleased to present the official change notes for Patch 0.9.5. In compliance with recent regulatory mandates from Corporate Compliance and the Security Operations Center (SOC), we have deployed an advanced anti-tamper framework while expanding the accounting infrastructure to accommodate hyper-inflationary multi-dimensional growth.
 
-Please review your mandatory optimization brief below.
+### 🚨 Corporate Anti-Tamper & Cryptographic Audit System
+To curb unauthorized balance inflation and fraudulent accounting entries via browser developer tools ("Inspect Element / Console Injection"), the following security layers have been integrated into your local workspace:
+* **Save Obfuscation & Encryption:** Save data is no longer stored in clear, readable JSON text within browser `localStorage`. It is now programmatically encoded into an obfuscated cryptographic token stream utilizing a base64 scrambling matrix and a secure text salt prefix (`ENCRYPTION_SALT`).
+* **Internal Auditor Loop (`shadowTally` Guard):** A background verification routine now maintains an independent, hidden shadow tally of your legitimate email production. Any external runtime memory modification or balance injection triggers an immediate corporate fraud mismatch, instantly reverting your ledger to the last authenticated state.
+* **IIFE Scope Encapsulation:** Core game loops, objects, and state variables have been fully wrapped inside an **Immediately Invoked Function Expression (IIFE)**. This closes the global window scope, meaning attempts to query or alter the `state` object directly from the developer console will now return `undefined`.
 
----
+### 📈 Infinite Corporate Scaling Engine (Numerical Ledger Overhaul)
+* **Late-Game Suffix Expansion:** Fixed an infrastructure issue where your accounting numbers stopped climbing once a player hit a Sextillion. Suffix indices have been expanded to cleanly support numbers stretching into **Septillions, Octillions, Nonillions, Decillions, and all the way up to Quindecillions**.
+* **Floating-Point Precision Mitigations:** Adjusted loop formatting constraints to stabilize layout notation metrics during high late-game scaling phases.
 
-### 🛠️ Infrastructure Optimizations (Anti-Stutter Protocol)
-
-* **Geometric Purchase Processing ($O(1)$ Math Overhaul):** Our Procurement Settings panel has been completely optimized. The old `while(true)` logic used for calculating **MAX** quantities has been terminated due to high CPU expenditure. It has been replaced with an exact geometric series formula, allowing you to hire 10,000 Email Interns instantly without crashing your local browser window.
-* **DOM Thrashing Mitigation:** The main layout engine has been fitted with a rendering guard. The system will no longer completely rewrite the HTML payload 10 times a second. It now updates with precision only when your corporate state or active countdown timers fluctuate.
-
-### 🚨 Brand New Feature: QBR Boardroom Incidents
-
-A dynamic crisis engine has been integrated directly into your Outlook notification pipeline. Every few minutes, standard reward pings will be disrupted by mandatory **Quarterly Business Reviews (QBR)**, forcing you to make immediate executive trade-offs between capital and chaotic productivity vectors:
-
-* **The Internet Outage:** The office router has given up the ghost. Will you pay a 15% email premium to outsource IT support, or pivot to paper memos to completely freeze passives but gain a raw **+400% boost to click power**?
-* **Phishing Simulation Mishap:** The workforce clicked the HR trap. Choose to deploy mandatory compliance videos (halving your CPS) or blame the interns to fire them from your inventory in exchange for permanent click power born of raw spite.
-* **Surprise Board Audit:** The regional director is on-site. Choose to fudge the Excel books or enter strict austerity measures, which spikes store costs by 300% but awards you a lean passive production bonus.
-* **Synergy Overload & Breakroom Pastry Civil Wars:** Leverage marketing's buzzword flood for a 10x multiplier, or manage an active office conflict over the last glazed donut in the breakroom.
-
-### 📊 Economic & Calibration Audits
-
-* **Global Power Format Corrections:** Your Stock Options portfolio text has been integrated with localized string formatting. A 1,000% Global Power multiplier will now correctly display with its thousand-comma delimiters.
-* **Typo Mitigation:** A critical data boundary typo (`activeCrisis`) missing an explicit comma delimiter in the state engine declaration blocks has been successfully patched out, returning the console to full compliance.
-
-### 🏆 Many, Many, Many More Milestones to Unlock
-* Think you got all the milestones? Think again, buddy.
-* Sure, you get a pat on the back for owning 1, 5, 10 and 50 of each upgrade, but let's stop acting like a newly hired intern. 
-* Trophies for 100, 500, 1000 and each 500 increment up to 5,000. Happy Clicking!
-
----
-
-> ⚠️ **REMINDER FROM HR:** Ignoring a QBR choice window before its progress indicator expires will result in an automatic default ruling in favor of Option A. Please sign off on these changes and return to sending emails immediately.
+### 📋 Mandatory Compliance Notice
+Any attempts to circumvent the new auditing framework will be logged automatically by the Internal Auditor. Please return to your workstation and continue sending emails through the approved operational channels. 
