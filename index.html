@@ -319,7 +319,7 @@
     </div>
 
     <header>
-        <h1>Office Clicker <span style="color: var(--text-muted); font-weight: 300; font-size: 1rem;">v0.9.3</span></h1>
+        <h1>Office Clicker <span style="color: var(--text-muted); font-weight: 300; font-size: 1rem;">v0.9.4</span></h1>
         <div style="display: flex; align-items: center; gap: 1rem;">
             <span id="save-status" style="font-size: 0.8rem; color: var(--text-muted);"></span>
             <div class="tagline">"Per my last email..."</div>
@@ -613,7 +613,11 @@
         // --- MATH UTILITIES ENGINE ---
         function formatCorporateNumbers(num) {
             if (num < 1000000) return Math.floor(num).toLocaleString();
-            const suffixes = [" Million", " Billion", " Trillion", " Quadrillion", " Quintillion", " Sextillion"];
+            const suffixes = [
+                " Million", " Billion", " Trillion", " Quadrillion", " Quintillion", 
+                " Sextillion", " Septillion", " Octillion", " Nonillion", " Decillion", 
+                " Undecillion", " Duodecillion", " Tredecillion", " Quattuordecillion", " Quindecillion"
+            ];
             let temp = num / 1000000;
             let idx = 0;
             while (temp >= 100 && idx < suffixes.length - 1) {
@@ -630,7 +634,7 @@
             if (state.perks.onboarding.currentTier > 0 && ['intern', 'buzzword', 'manager'].includes(key)) {
                 baseCostPrice *= (1 - (state.perks.onboarding.currentTier * 0.10));
             }
-            
+
             if (state.activeCrisis && state.activeCrisis.id === 'board_audit' && state.activeCrisis.choice === 'B') {
                 baseCostPrice *= 4; // 300% cost spike
             }
@@ -1281,12 +1285,10 @@
                 }
             }
 
-            Object.keys(state.automationUpgrades).forEach(key => {
+            document.querySelectorAll('#dept-upgrades-container .upgrade-btn').forEach(btn => {
+                let key = btn.id.replace('btn-dept-', '');
                 let upgrade = state.automationUpgrades[key];
-                let btn = document.getElementById(`btn-dept-${key}`);
-                if (btn) {
-                    btn.disabled = state.emails < upgrade.cost;
-                }
+                if (upgrade) btn.disabled = state.emails < upgrade.cost;
             });
 
             const refreshCards = (dict) => {
