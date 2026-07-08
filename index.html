@@ -208,6 +208,11 @@
             padding: 0.5rem; text-align: center; font-size: 0.8rem; font-weight: 700; color: #b45309; margin-bottom: 1rem;
         }
 
+        .cabinet-summary-bar {
+            background-color: #ffffff; border: 1px dashed var(--brand-gold); border-radius: 6px;
+            padding: 0.5rem; text-align: center; font-size: 0.8rem; font-weight: 700; color: #b45309; margin-bottom: 1rem;
+        }
+
         .cabinet-sub-section { margin-bottom: 1rem; }
         .cabinet-sub-section:last-child { margin-bottom: 0; }
         
@@ -578,7 +583,7 @@
 
         let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
         let shadowTally = 0; 
-        let residualDecimalAccumulator = 0; // Fixed underflow precision-loss aggregation buffer
+        let residualDecimalAccumulator = 0; 
         let currentActiveEvent = null;
         let activeBuffs = { coffeeRush: 0 };
         let coffeeRushMaxDuration = 15;
@@ -610,7 +615,6 @@
         // --- INTERNAL SECURITY AUDITOR ---
         function runInternalLedgerAudit() {
             let currentCps = getEmailsPerSecond();
-            // Dynamic check window allows current true passives + clicking velocity headroom
             let maxExpectedGain = (currentCps * 2.5) + (getStaticClickPower() * 60) + 5000000000;
             
             if (state.emails > shadowTally + maxExpectedGain && shadowTally > 0) {
@@ -1396,16 +1400,20 @@
                         if(parsed.lifetimeEmails !== undefined) state.lifetimeEmails = parsed.lifetimeEmails;
                         if(parsed.stockOptions !== undefined) state.stockOptions = parsed.stockOptions;
                         
-                        for(let key in parsed.upgrades) {
-                            if(state.upgrades[key]) {
-                                let source = parsed.upgrades[key];
-                                state.upgrades[key].count = (typeof source === 'object' && source !== null) ? (source.count || 0) : (Number(source) || 0);
+                        if (parsed.upgrades) {
+                            for(let key in parsed.upgrades) {
+                                if(state.upgrades[key]) {
+                                    let source = parsed.upgrades[key];
+                                    state.upgrades[key].count = (typeof source === 'object' && source !== null) ? (source.count || 0) : (Number(source) || 0);
+                                }
                             }
                         }
-                        for(let key in parsed.automation) {
-                            if(state.automation[key]) {
-                                let source = parsed.automation[key];
-                                state.automation[key].count = (typeof source === 'object' && source !== null) ? (source.count || 0) : (Number(source) || 0);
+                        if (parsed.automation) {
+                            for(let key in parsed.automation) {
+                                if(state.automation[key]) {
+                                    let source = parsed.automation[key];
+                                    state.automation[key].count = (typeof source === 'object' && source !== null) ? (source.count || 0) : (Number(source) || 0);
+                                }
                             }
                         }
                         if (parsed.automationUpgrades) {
@@ -1451,7 +1459,7 @@
             }
         }
 
-        function clearSave() {
+        window.clearSave = function() {
             if(confirm("Wipe career progress data? Everything resets.")) {
                 localStorage.removeItem('office_clicker_save');
                 state = JSON.parse(JSON.stringify(DEFAULT_STATE));
@@ -1498,7 +1506,6 @@
             if (cps > 0) { 
                 let frameIncrement = (cps / 10);
                 
-                // Aggregation filter combats floating-point truncation ceilings at Quindecillions
                 if (state.emails > 1e16 && frameIncrement < state.emails * 1e-15) {
                     residualDecimalAccumulator += frameIncrement;
                     if (residualDecimalAccumulator >= state.emails * 1e-14 || residualDecimalAccumulator >= 1000000) {
@@ -1546,4 +1553,5 @@
     })();
     </script>
 </body>
+</html>
 </html>
