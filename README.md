@@ -1,20 +1,93 @@
-# Changelog
+# Office Clicker v0.9.8 - The Offline Overtime Update
 
-## [v0.9.5] — "The Ledger Security & Infinite Scaling Update"
+Welcome back to the inbox mines.
 
-Attention all Workforce Assets,
+This release gives **Office Clicker** a tidy performance pass, a few quality-of-life upgrades, and one very important new feature: your corporate empire now keeps grinding while you are away. Because apparently even closing the tab is not enough to escape Outlook.
 
-The Executive Committee is pleased to present the official change notes for Patch 0.9.5. In compliance with recent regulatory mandates from Corporate Compliance and the Security Operations Center (SOC), we have deployed an advanced anti-tamper framework while expanding the accounting infrastructure to accommodate hyper-inflationary multi-dimensional growth.
+## New Feature: Offline Earnings
 
-### 🚨 Corporate Anti-Tamper & Cryptographic Audit System
-To curb unauthorized balance inflation and fraudulent accounting entries via browser developer tools ("Inspect Element / Console Injection"), the following security layers have been integrated into your local workspace:
-* **Save Obfuscation & Encryption:** Save data is no longer stored in clear, readable JSON text within browser `localStorage`. It is now programmatically encoded into an obfuscated cryptographic token stream utilizing a base64 scrambling matrix and a secure text salt prefix (`ENCRYPTION_SALT`).
-* **Internal Auditor Loop (`shadowTally` Guard):** A background verification routine now maintains an independent, hidden shadow tally of your legitimate email production. Any external runtime memory modification or balance injection triggers an immediate corporate fraud mismatch, instantly reverting your ledger to the last authenticated state.
-* **IIFE Scope Encapsulation:** Core game loops, objects, and state variables have been fully wrapped inside an **Immediately Invoked Function Expression (IIFE)**. This closes the global window scope, meaning attempts to query or alter the `state` object directly from the developer console will now return `undefined`.
+Your workforce now continues generating emails while you are away from the game.
 
-### 📈 Infinite Corporate Scaling Engine (Numerical Ledger Overhaul)
-* **Late-Game Suffix Expansion:** Fixed an infrastructure issue where your accounting numbers stopped climbing once a player hit a Sextillion. Suffix indices have been expanded to cleanly support numbers stretching into **Septillions, Octillions, Nonillions, Decillions, and all the way up to Quindecillions**.
-* **Floating-Point Precision Mitigations:** Adjusted loop formatting constraints to stabilize layout notation metrics during high late-game scaling phases.
+When you return, Office Clicker checks how long it has been since your last save, calculates your current passive email generation rate, and awards the emails your corporate machine produced during that time.
 
-### 📋 Mandatory Compliance Notice
-Any attempts to circumvent the new auditing framework will be logged automatically by the Internal Auditor. Please return to your workstation and continue sending emails through the approved operational channels. 
+To keep things balanced and prevent the universe from collapsing under unread notifications, offline earnings are capped at **8 hours**.
+
+In practical terms:
+
+- Close the game or step away.
+- Your progress is saved with a timestamp.
+- When you come back, the game calculates your offline time.
+- You receive passive earnings based on your current emails-per-second rate.
+- The earnings are added to both your current email total and lifetime output.
+- A cheerful little report tells you how much damage your department caused while unsupervised.
+
+Example:
+
+> While you were away, your department sent 42.7 Million emails. Nobody read them.
+
+Beautiful. Terrible. Efficient.
+
+## Improvements
+
+### Smoother Game Loop
+
+The passive income system has been rebuilt to use a cleaner animation-based loop instead of relying on a fixed 100ms interval.
+
+This should make the game feel smoother, behave better after tab throttling, and generally reduce the amount of tiny spreadsheet gremlins running around in the background.
+
+### Cleaner UI Updates
+
+The game no longer checks achievements constantly during passive income ticks. Achievement checks now happen when they actually matter, such as after buying upgrades or automation.
+
+Less unnecessary work. More pretending to be productive.
+
+### Better Save Data
+
+Saves now store the important moving parts of your progress rather than dragging along all the static game configuration.
+
+This makes saves leaner, easier to maintain, and better prepared for future balancing changes.
+
+Old saves should still load correctly, because we respect legacy systems even when they contain cursed procurement logic.
+
+## Fixes
+
+### Fixed Number Formatting
+
+Large numbers now display correctly.
+
+Previously, some values were getting promoted through the corporate hierarchy far too quickly. Millions were becoming Billions, Billions were becoming Trillions, and Finance was starting to ask questions.
+
+The formatter now scales properly through:
+
+- Million
+- Billion
+- Trillion
+- Quadrillion
+- And many increasingly suspicious suffixes beyond that
+
+### Corporate Takeover Matrix Now Does Something
+
+The Executive Store item **Corporate Takeover Matrix** now actually contributes to gameplay instead of sitting around looking important in meetings.
+
+Very realistic, but not ideal for balance.
+
+### General Cleanup
+
+- Removed duplicate CSS.
+- Removed an extra closing HTML tag.
+- Tidied some internal save/load handling.
+- Reduced unnecessary processing in the main loop.
+
+## Not Included
+
+Department Synergies have **not** been added in this release.
+
+They are still sitting in a meeting room somewhere, aligning stakeholders, waiting for a future roadmap discussion.
+
+## Final Note
+
+This update is all about making Office Clicker smoother, cleaner, and better at rewarding players who step away from the chaos.
+
+Which is ironic, because the game now encourages your office to keep sending emails while you are gone.
+
+Truly, innovation.

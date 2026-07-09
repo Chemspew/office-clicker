@@ -208,11 +208,6 @@
             padding: 0.5rem; text-align: center; font-size: 0.8rem; font-weight: 700; color: #b45309; margin-bottom: 1rem;
         }
 
-        .cabinet-summary-bar {
-            background-color: #ffffff; border: 1px dashed var(--brand-gold); border-radius: 6px;
-            padding: 0.5rem; text-align: center; font-size: 0.8rem; font-weight: 700; color: #b45309; margin-bottom: 1rem;
-        }
-
         .cabinet-sub-section { margin-bottom: 1rem; }
         .cabinet-sub-section:last-child { margin-bottom: 0; }
         
@@ -324,7 +319,7 @@
     </div>
 
     <header>
-        <h1>Office Clicker <span style="color: var(--text-muted); font-weight: 300; font-size: 1rem;">v0.9.7</span></h1>
+        <h1>Office Clicker <span style="color: var(--text-muted); font-weight: 300; font-size: 1rem;">v0.9.8</span></h1>
         <div style="display: flex; align-items: center; gap: 1rem;">
             <span id="save-status" style="font-size: 0.8rem; color: var(--text-muted);"></span>
             <div class="tagline">"Per my last email..."</div>
@@ -487,6 +482,12 @@
     (function() {
         // --- CORE DATA PROTECTION MATRIX ---
         const ENCRYPTION_SALT = "CorpAudit_2026_";
+        const SAVE_KEY = "office_clicker_save";
+        const SAVE_VERSION = 2;
+        const OFFLINE_CAP_SECONDS = 60 * 60 * 8; // Maximum 8 hours of offline production.
+        const MIN_OFFLINE_SECONDS_TO_REPORT = 30;
+        const MAX_FRAME_DELTA_SECONDS = 1;
+        const UI_RENDER_INTERVAL_MS = 200;
         
         function secureEncrypt(obj) {
             try {
@@ -652,21 +653,43 @@
 
         // --- MATH UTILITIES ENGINE ---
         function formatCorporateNumbers(num) {
-            if (isNaN(num) || !isFinite(num)) return "0";
-            if (num < 1000000) return Math.floor(num).toLocaleString();
+            if (isNaN(num)) return "0";
+            if (!isFinite(num)) return "∞";
+            if (Math.abs(num) < 1000000) return Math.floor(num).toLocaleString();
+
             const suffixes = [
-                " Million", " Billion", " Trillion", " Quadrillion", " Quintillion", 
-                " Sextillion", " Septillion", " Octillion", " Nonillion", " Decillion", 
-                " Undecillion", " Duodecillion", " Tredecillion", " Quattuordecillion", " Quindecillion",
-                " Sexdecillion", " Septendecillion", " Octodecillion", " Novemdecillion", " Vigintillion"
+                "Million", "Billion", "Trillion", "Quadrillion", "Quintillion",
+                "Sextillion", "Septillion", "Octillion", "Nonillion", "Decillion",
+                "Undecillion", "Duodecillion", "Tredecillion", "Quattuordecillion", "Quindecillion",
+                "Sexdecillion", "Septendecillion", "Octodecillion", "Novemdecillion", "Vigintillion"
             ];
-            let temp = num / 1000000;
-            let idx = 0;
-            while (temp >= 100 && idx < suffixes.length - 1) {
-                temp /= 100;
-                idx++;
+
+            let value = Math.abs(num) / 1000000;
+            let suffixIndex = 0;
+
+            while (value >= 1000 && suffixIndex < suffixes.length - 1) {
+                value /= 1000;
+                suffixIndex++;
             }
-            return temp.toFixed(2) + suffixes[idx];
+
+            const sign = num < 0 ? "-" : "";
+            return `${sign}${value.toFixed(2)} ${suffixes[suffixIndex]}`;
+        }
+
+        function formatSignedCorporateNumbers(num) {
+            const sign = num >= 0 ? "+" : "-";
+            return `${sign}${formatCorporateNumbers(Math.abs(num))}`;
+        }
+
+        function formatDuration(seconds) {
+            seconds = Math.max(0, Math.floor(seconds));
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+
+            if (hours > 0) return `${hours}h ${minutes}m`;
+            if (minutes > 0) return `${minutes}m ${secs}s`;
+            return `${secs}s`;
         }
 
         function getBulkDetails(item, key) {
@@ -771,6 +794,10 @@
             }
             
             let totalClickPower = (1 + rawClickValue) * getGlobalPrestigeMultiplier();
+
+            if (state.boardStore.takeover && state.boardStore.takeover.bought) {
+                totalClickPower *= 1 + Math.log10(state.stockOptions + 1);
+            }
             
             if (state.boardStore.nutrientSlop && state.boardStore.nutrientSlop.boughtCount > 0) {
                 totalClickPower *= Math.pow(2, state.boardStore.nutrientSlop.boughtCount);
@@ -789,6 +816,30 @@
         function calculateOptionsYield() {
             if (state.emails < 1000000) return 0;
             return Math.floor(150 * Math.sqrt(state.emails / 1000000));
+        }
+
+        function addPassiveEmails(seconds) {
+            let cps = getEmailsPerSecond();
+            if (cps <= 0 || seconds <= 0) return 0;
+
+            let passiveGain = cps * seconds;
+            let appliedGain = 0;
+
+            if (state.emails > 1e16 && passiveGain < state.emails * 1e-15) {
+                residualDecimalAccumulator += passiveGain;
+                if (residualDecimalAccumulator >= state.emails * 1e-14 || residualDecimalAccumulator >= 1000000) {
+                    appliedGain = residualDecimalAccumulator;
+                    state.emails += appliedGain;
+                    state.lifetimeEmails += appliedGain;
+                    residualDecimalAccumulator = 0;
+                }
+            } else {
+                appliedGain = passiveGain;
+                state.emails += appliedGain;
+                state.lifetimeEmails += appliedGain;
+            }
+
+            return appliedGain;
         }
 
         // --- INTERACTION & GAMEPLAY FUNCTIONS ---
@@ -969,6 +1020,27 @@
             document.getElementById('event-toast').classList.remove('active');
             clearTimeout(currentActiveEvent.timerRef);
             currentActiveEvent = null;
+        }
+
+        function showOfflineReport(report) {
+            if (!report || report.gain <= 0 || currentActiveEvent) return;
+
+            const toast = document.getElementById('event-toast');
+            const progressbar = document.getElementById('event-progressbar');
+            const crisisControls = document.getElementById('crisis-controls');
+            const cappedMessage = report.secondsAway > report.cappedSeconds
+                ? ` Capped at ${formatDuration(report.cappedSeconds)} by corporate policy.`
+                : "";
+
+            document.getElementById('event-title').textContent = '📬 Offline Mailroom Report';
+            document.getElementById('event-body').textContent = `While you were away for ${formatDuration(report.secondsAway)}, your team sent ${formatCorporateNumbers(report.gain)} emails.${cappedMessage}`;
+            toast.style.borderLeftColor = 'var(--brand-green)';
+            progressbar.style.backgroundColor = 'var(--brand-green)';
+            crisisControls.style.display = 'none';
+            toast.onclick = () => { expireActiveEvent(); };
+
+            currentActiveEvent = { id: 'offline_report' };
+            triggerToastAnimation(toast, progressbar, 7000, () => { expireActiveEvent(); });
         }
 
         function clickEventNotification() {
@@ -1240,10 +1312,15 @@
             }
         };
 
+        function syncBuyQuantityButtons() {
+            document.querySelectorAll('.mult-btn').forEach(b => b.classList.remove('active'));
+            const selectedButton = document.getElementById(`mult-${state.buyQuantity}`);
+            if (selectedButton) selectedButton.classList.add('active');
+        }
+
         window.setMultiplier = function(qty) {
             state.buyQuantity = qty.toString();
-            document.querySelectorAll('.mult-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(`mult-${qty}`).classList.add('active');
+            syncBuyQuantityButtons();
             updateUI();
         };
 
@@ -1255,7 +1332,7 @@
             let totalCps = getEmailsPerSecond();
             let bonusPassiveCps = totalCps - baseCps;
 
-            document.getElementById('cps-display').textContent = `${formatCorporateNumbers(totalCps)} emails / sec (+${formatCorporateNumbers(bonusPassiveCps)} passive)`;
+            document.getElementById('cps-display').textContent = `${formatCorporateNumbers(totalCps)} emails / sec (${formatSignedCorporateNumbers(bonusPassiveCps)} passive modifier)`;
             
             let currentDisplayClickPower = getStaticClickPower();
             if ((state.upgrades.pptPedant.count || 0) > 0) {
@@ -1386,71 +1463,154 @@
         };
 
         // --- CORE SAVE / LOAD ENGINE ---
+        function toFiniteNumber(value, fallback = 0) {
+            const parsed = Number(value);
+            return Number.isFinite(parsed) ? parsed : fallback;
+        }
+
+        function extractSavedCount(source) {
+            if (typeof source === 'object' && source !== null) {
+                return toFiniteNumber(source.count, 0);
+            }
+            return toFiniteNumber(source, 0);
+        }
+
+        function extractSavedBought(source) {
+            if (typeof source === 'object' && source !== null) {
+                return source.bought === true;
+            }
+            return source === true;
+        }
+
+        function createSavePayload() {
+            return {
+                version: SAVE_VERSION,
+                savedAt: Date.now(),
+                emails: state.emails,
+                lifetimeEmails: state.lifetimeEmails,
+                stockOptions: state.stockOptions,
+                buyQuantity: state.buyQuantity,
+                upgrades: Object.fromEntries(Object.entries(state.upgrades).map(([key, item]) => [key, item.count || 0])),
+                automation: Object.fromEntries(Object.entries(state.automation).map(([key, item]) => [key, item.count || 0])),
+                automationUpgrades: Object.fromEntries(Object.entries(state.automationUpgrades).map(([key, item]) => [key, item.bought === true])),
+                perks: Object.fromEntries(Object.entries(state.perks).map(([key, item]) => [key, item.currentTier || 0])),
+                boardStore: {
+                    taxHaven: state.boardStore.taxHaven.bought === true,
+                    takeover: state.boardStore.takeover.bought === true,
+                    nutrientSlop: state.boardStore.nutrientSlop.boughtCount || 0
+                },
+                unlockedMilestones: state.unlockedMilestones || {}
+            };
+        }
+
+        function applySavedState(parsed) {
+            if (!parsed) return;
+
+            if (parsed.emails !== undefined) state.emails = Math.max(0, toFiniteNumber(parsed.emails, 0));
+            if (parsed.lifetimeEmails !== undefined) state.lifetimeEmails = Math.max(0, toFiniteNumber(parsed.lifetimeEmails, 0));
+            if (parsed.stockOptions !== undefined) state.stockOptions = Math.max(0, Math.floor(toFiniteNumber(parsed.stockOptions, 0)));
+            if (parsed.buyQuantity !== undefined && ['1', '5', 'max'].includes(parsed.buyQuantity.toString())) {
+                state.buyQuantity = parsed.buyQuantity.toString();
+            }
+
+            if (parsed.upgrades) {
+                for (let key in parsed.upgrades) {
+                    if (state.upgrades[key]) state.upgrades[key].count = Math.max(0, extractSavedCount(parsed.upgrades[key]));
+                }
+            }
+
+            if (parsed.automation) {
+                for (let key in parsed.automation) {
+                    if (state.automation[key]) state.automation[key].count = Math.max(0, extractSavedCount(parsed.automation[key]));
+                }
+            }
+
+            if (parsed.automationUpgrades) {
+                for (let key in parsed.automationUpgrades) {
+                    if (state.automationUpgrades[key]) state.automationUpgrades[key].bought = extractSavedBought(parsed.automationUpgrades[key]);
+                }
+            }
+
+            if (parsed.perks) {
+                for (let key in parsed.perks) {
+                    if (state.perks[key]) {
+                        const savedTier = typeof parsed.perks[key] === 'object' && parsed.perks[key] !== null
+                            ? toFiniteNumber(parsed.perks[key].currentTier, 0)
+                            : toFiniteNumber(parsed.perks[key], 0);
+                        state.perks[key].currentTier = Math.min(state.perks[key].maxTier, Math.max(0, Math.floor(savedTier)));
+                    }
+                }
+            }
+
+            if (parsed.boardStore) {
+                for (let key in parsed.boardStore) {
+                    if (!state.boardStore[key]) continue;
+
+                    if (key === 'nutrientSlop') {
+                        const source = parsed.boardStore.nutrientSlop;
+                        const savedCount = typeof source === 'object' && source !== null
+                            ? toFiniteNumber(source.boughtCount, 0)
+                            : toFiniteNumber(source, 0);
+                        state.boardStore.nutrientSlop.boughtCount = Math.max(0, Math.floor(savedCount));
+                    } else {
+                        state.boardStore[key].bought = extractSavedBought(parsed.boardStore[key]);
+                    }
+                }
+            }
+
+            if (parsed.unlockedMilestones && typeof parsed.unlockedMilestones === 'object') {
+                state.unlockedMilestones = parsed.unlockedMilestones;
+            }
+        }
+
+        function applyOfflineProgress(savedAt) {
+            const lastSavedAt = toFiniteNumber(savedAt, 0);
+            if (!lastSavedAt) return null;
+
+            const secondsAway = Math.floor((Date.now() - lastSavedAt) / 1000);
+            if (secondsAway < MIN_OFFLINE_SECONDS_TO_REPORT) return null;
+
+            const cappedSeconds = Math.min(secondsAway, OFFLINE_CAP_SECONDS);
+            const gain = addPassiveEmails(cappedSeconds);
+
+            if (gain <= 0) return null;
+
+            shadowTally = state.emails;
+            return { secondsAway, cappedSeconds, gain };
+        }
+
         function loadGame() {
-            const savedData = localStorage.getItem('office_clicker_save');
+            const savedData = localStorage.getItem(SAVE_KEY);
+            let offlineReport = null;
+
             if (savedData) {
                 let parsed = secureDecrypt(savedData);
                 if (!parsed) {
                     try { parsed = JSON.parse(savedData); } catch(e) {}
                 }
-                
+
                 if (parsed) {
                     try {
-                        if(parsed.emails !== undefined) state.emails = parsed.emails;
-                        if(parsed.lifetimeEmails !== undefined) state.lifetimeEmails = parsed.lifetimeEmails;
-                        if(parsed.stockOptions !== undefined) state.stockOptions = parsed.stockOptions;
-                        
-                        if (parsed.upgrades) {
-                            for(let key in parsed.upgrades) {
-                                if(state.upgrades[key]) {
-                                    let source = parsed.upgrades[key];
-                                    state.upgrades[key].count = (typeof source === 'object' && source !== null) ? (source.count || 0) : (Number(source) || 0);
-                                }
-                            }
-                        }
-                        if (parsed.automation) {
-                            for(let key in parsed.automation) {
-                                if(state.automation[key]) {
-                                    let source = parsed.automation[key];
-                                    state.automation[key].count = (typeof source === 'object' && source !== null) ? (source.count || 0) : (Number(source) || 0);
-                                }
-                            }
-                        }
-                        if (parsed.automationUpgrades) {
-                            for(let key in parsed.automationUpgrades) {
-                                if(state.automationUpgrades[key]) state.automationUpgrades[key].bought = parsed.automationUpgrades[key].bought || false;
-                            }
-                        }
-                        if (parsed.perks) {
-                            for(let key in parsed.perks) {
-                                if(state.perks[key]) state.perks[key].currentTier = parsed.perks[key].currentTier || 0;
-                            }
-                        }
-                        if (parsed.boardStore) {
-                            for(let key in parsed.boardStore) {
-                                if(state.boardStore[key]) {
-                                    if (key === 'nutrientSlop') {
-                                        state.boardStore.nutrientSlop.boughtCount = parsed.boardStore.nutrientSlop.boughtCount || 0;
-                                    } else {
-                                        state.boardStore[key].bought = parsed.boardStore[key].bought || false;
-                                    }
-                                }
-                            }
-                        }
-                        if(parsed.unlockedMilestones) state.unlockedMilestones = parsed.unlockedMilestones;
+                        applySavedState(parsed);
+                        offlineReport = applyOfflineProgress(parsed.savedAt || parsed.lastSavedAt);
                         shadowTally = state.emails;
                         residualDecimalAccumulator = 0;
-                    } catch(e) { console.error("Error formatting layout on save alignment.", e); }
+                    } catch(e) {
+                        console.error("Error formatting layout on save alignment.", e);
+                    }
                 }
             }
+
+            return offlineReport;
         }
 
         function saveGame(isAuto = true) {
-            const encryptedPayload = secureEncrypt(state);
+            const payload = createSavePayload();
+            const encryptedPayload = secureEncrypt(payload);
             if (encryptedPayload) {
-                localStorage.setItem('office_clicker_save', encryptedPayload);
+                localStorage.setItem(SAVE_KEY, encryptedPayload);
             } else {
-                localStorage.setItem('office_clicker_save', JSON.stringify(state));
+                localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
             }
             const statusEl = document.getElementById('save-status');
             if (statusEl) {
@@ -1461,7 +1621,7 @@
 
         window.clearSave = function() {
             if(confirm("Wipe career progress data? Everything resets.")) {
-                localStorage.removeItem('office_clicker_save');
+                localStorage.removeItem(SAVE_KEY);
                 state = JSON.parse(JSON.stringify(DEFAULT_STATE));
                 shadowTally = 0;
                 residualDecimalAccumulator = 0;
@@ -1471,6 +1631,7 @@
                 buildAchievementUI();
                 buildPerksUI();
                 buildExecutiveStoreUI();
+                syncBuyQuantityButtons();
                 updateUI();
             }
         }
@@ -1501,27 +1662,20 @@
         // --- EVENT INITIALIZATIONS ---
         document.getElementById('click-btn').addEventListener('click', executeEmailClick);
 
-        setInterval(() => {
-            let cps = getEmailsPerSecond();
-            if (cps > 0) { 
-                let frameIncrement = (cps / 10);
-                
-                if (state.emails > 1e16 && frameIncrement < state.emails * 1e-15) {
-                    residualDecimalAccumulator += frameIncrement;
-                    if (residualDecimalAccumulator >= state.emails * 1e-14 || residualDecimalAccumulator >= 1000000) {
-                        state.emails += residualDecimalAccumulator;
-                        state.lifetimeEmails += residualDecimalAccumulator;
-                        residualDecimalAccumulator = 0;
-                    }
-                } else {
-                    state.emails += frameIncrement; 
-                    state.lifetimeEmails += frameIncrement; 
-                }
-                
-                evaluateAchievements(); 
-                updateUI(); 
+        let lastGameTick = performance.now();
+        let lastUiRender = 0;
+
+        function gameLoop(now) {
+            const deltaSeconds = Math.min((now - lastGameTick) / 1000, MAX_FRAME_DELTA_SECONDS);
+            lastGameTick = now;
+
+            if (addPassiveEmails(deltaSeconds) > 0 && now - lastUiRender >= UI_RENDER_INTERVAL_MS) {
+                updateUI();
+                lastUiRender = now;
             }
-        }, 100);
+
+            requestAnimationFrame(gameLoop);
+        }
 
         setInterval(() => { 
             if (activeBuffs.coffeeRush > 0) { 
@@ -1538,20 +1692,24 @@
             runInternalLedgerAudit(); 
             updateUI();
         }, 1000);
-		
+        
         setInterval(() => { if (!currentActiveEvent && Math.random() < 0.35) spawnRandomEvent(); }, 50000);
         setInterval(() => { saveGame(true); }, 15000);
+        window.addEventListener('beforeunload', () => { saveGame(false); });
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveGame(false); });
 
         // Run Build Setup
-        loadGame(); 
+        const offlineReport = loadGame();
         buildUpgradeUI(); 
         buildDeptUpgradeUI();
         buildAchievementUI(); 
         buildPerksUI(); 
-        buildExecutiveStoreUI(); 
+        buildExecutiveStoreUI();
+        syncBuyQuantityButtons();
         updateUI();
+        showOfflineReport(offlineReport);
+        requestAnimationFrame(gameLoop);
     })();
     </script>
 </body>
-</html>
 </html>
