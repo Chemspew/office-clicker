@@ -1,93 +1,28 @@
-# Office Clicker v0.9.8 - The Offline Overtime Update
+# Office Clicker v0.9.9 - The Floor Monitor & Micro-Management Patch
 
-Welcome back to the inbox mines.
+Welcome back to the corporate matrix. 
 
-This release gives **Office Clicker** a tidy performance pass, a few quality-of-life upgrades, and one very important new feature: your corporate empire now keeps grinding while you are away. Because apparently even closing the tab is not enough to escape Outlook.
+Following recent productivity audits, corporate has noticed a severe lack of visual tracking regarding company assets. To address this, we have installed a real-time tracking interface right into your command deck. Now you can actively watch your department drones push papers in absolute silence. 
 
-## New Feature: Offline Earnings
+## New Feature: Department Floor Monitor (The Drone Tracker)
 
-Your workforce now continues generating emails while you are away from the game.
+Your workstation has been upgraded with a high-performance **Department Floor Monitor**. You can now visually track your staffing branches directly under the main action button. 
 
-When you return, Office Clicker checks how long it has been since your last save, calculates your current passive email generation rate, and awards the emails your corporate machine produced during that time.
+- **Live Asset Tracking:** Every time you acquire an infrastructure unit, a dedicated emoji icon spawns in your grid matrix (💻 for Interns, 📋 for Middle Managers, 🤖 for Slack Bots, etc.).
+- **Anti-Clutter Capping:** To prevent the browser from overheating due to excessive corporate synergy, the visualizer caps at **20 rendered icons** per asset class. Any staffing volumes beyond 20 are represented by a clean numerical overflow badge (+X).
+- **Crisis Glitch Aesthetics:** When a QBR Crisis strikes, the entire floor monitor shifts into a red emergency lockdown visualizer state, ensuring maximum psychological panic while you scramble to resolve the alert.
+- **Flashing Eliminated:** We removed an undocumented feature from the initial prototype where the entire floor grid would flash uncontrollably on every frame. Emojis are now completely static, stable, and compliant with HR comfort regulations.
 
-To keep things balanced and prevent the universe from collapsing under unread notifications, offline earnings are capped at **8 hours**.
+## Technical Fixes & Under-the-Hood Synergy
 
-In practical terms:
+### Visual Loop Optimization
+The dynamic visualizer array has been properly decoupled from the core UI rendering ticks. It now renders smoothly without wasting calculation bandwidth on non-structural updates.
 
-- Close the game or step away.
-- Your progress is saved with a timestamp.
-- When you come back, the game calculates your offline time.
-- You receive passive earnings based on your current emails-per-second rate.
-- The earnings are added to both your current email total and lifetime output.
-- A cheerful little report tells you how much damage your department caused while unsupervised.
+### Ticker Content Alignment
+Cleaned up background text mapping loops to ensure the internal communication ticker updates seamlessly alongside your career milestones.
 
-Example:
+## Roadmap Status Update
 
-> While you were away, your department sent 42.7 Million emails. Nobody read them.
+The Department Synergies feature is *still* locked in an endless steering committee sync. However, the floor monitor is now active, meaning you can officially watch your hired drones pretend to work in real-time. 
 
-Beautiful. Terrible. Efficient.
-
-## Improvements
-
-### Smoother Game Loop
-
-The passive income system has been rebuilt to use a cleaner animation-based loop instead of relying on a fixed 100ms interval.
-
-This should make the game feel smoother, behave better after tab throttling, and generally reduce the amount of tiny spreadsheet gremlins running around in the background.
-
-### Cleaner UI Updates
-
-The game no longer checks achievements constantly during passive income ticks. Achievement checks now happen when they actually matter, such as after buying upgrades or automation.
-
-Less unnecessary work. More pretending to be productive.
-
-### Better Save Data
-
-Saves now store the important moving parts of your progress rather than dragging along all the static game configuration.
-
-This makes saves leaner, easier to maintain, and better prepared for future balancing changes.
-
-Old saves should still load correctly, because we respect legacy systems even when they contain cursed procurement logic.
-
-## Fixes
-
-### Fixed Number Formatting
-
-Large numbers now display correctly.
-
-Previously, some values were getting promoted through the corporate hierarchy far too quickly. Millions were becoming Billions, Billions were becoming Trillions, and Finance was starting to ask questions.
-
-The formatter now scales properly through:
-
-- Million
-- Billion
-- Trillion
-- Quadrillion
-- And many increasingly suspicious suffixes beyond that
-
-### Corporate Takeover Matrix Now Does Something
-
-The Executive Store item **Corporate Takeover Matrix** now actually contributes to gameplay instead of sitting around looking important in meetings.
-
-Very realistic, but not ideal for balance.
-
-### General Cleanup
-
-- Removed duplicate CSS.
-- Removed an extra closing HTML tag.
-- Tidied some internal save/load handling.
-- Reduced unnecessary processing in the main loop.
-
-## Not Included
-
-Department Synergies have **not** been added in this release.
-
-They are still sitting in a meeting room somewhere, aligning stakeholders, waiting for a future roadmap discussion.
-
-## Final Note
-
-This update is all about making Office Clicker smoother, cleaner, and better at rewarding players who step away from the chaos.
-
-Which is ironic, because the game now encourages your office to keep sending emails while you are gone.
-
-Truly, innovation.
+Get back to the inbox. Those template emails won't send themselves.

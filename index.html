@@ -78,7 +78,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
-            padding: 2rem;
+            padding: 1.5rem 2rem;
             overflow-y: auto;
         }
 
@@ -89,10 +89,10 @@
             justify-content: center;
             flex: 1;
             width: 100%;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
         }
 
-        .metrics-panel { text-align: center; margin-bottom: 1.5rem; }
+        .metrics-panel { text-align: center; margin-bottom: 1rem; }
         .counter { font-size: 4rem; font-weight: 800; letter-spacing: -0.05em; line-height: 1; }
         .counter-label { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-secondary); font-weight: 600; margin-top: 0.5rem; }
         
@@ -135,7 +135,7 @@
         }
 
         .click-btn {
-            background-color: var(--brand-blue); color: white; border: none; padding: 1.5rem 3rem;
+            background-color: var(--brand-blue); color: white; border: none; padding: 1.25rem 3rem;
             font-size: 1.25rem; font-weight: 600; border-radius: 12px; cursor: pointer;
             box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.2); transition: transform 0.08s ease, background-color 0.15s ease;
             width: 100%; max-width: 320px; margin-bottom: 1rem;
@@ -188,6 +188,79 @@
             100% { transform: translate(-50%, -50%) translateY(-90px) scale(1.1) rotate(0deg); opacity: 0; }
         }
 
+        /* Drone Visualizer Panel */
+        .visualizer-box {
+            width: 100%;
+            max-width: 440px;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: #f1f5f9;
+            padding: 0.75rem;
+        }
+        .visualizer-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+        }
+        .visualizer-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            max-height: 180px;
+            overflow-y: auto;
+            background: #ffffff;
+            padding: 0.5rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+        .visualizer-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+        }
+        .visualizer-row-label {
+            width: 85px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .visualizer-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2px;
+            flex: 1;
+        }
+        .visualizer-node {
+            font-size: 0.85rem;
+            line-height: 1;
+            user-select: none;
+        }
+        .visualizer-box.crisis-mode {
+            background-color: #fee2e2;
+            border-color: #fca5a5;
+            animation: visualizer-glitch 0.3s linear infinite alternate;
+        }
+        .visualizer-box.crisis-mode .visualizer-container {
+            background-color: #fef2f2;
+            border-color: #fca5a5;
+        }
+        .visualizer-box.crisis-mode .visualizer-node {
+            filter: grayscale(1) sepia(1) hue-rotate(-50deg) saturate(5);
+        }
+        @keyframes visualizer-glitch {
+            0% { transform: translate(1px, 0); }
+            100% { transform: translate(-1px, 0); }
+        }
+
         /* Cabinet Layout */
         .cabinet-box {
             width: 100%; max-width: 440px; margin-top: auto; 
@@ -202,6 +275,11 @@
         
         .cabinet-content { padding: 1rem; max-height: 400px; overflow-y: auto; transition: max-height 0.25s ease-out; opacity: 1; }
         .cabinet-content.collapsed { max-height: 0 !important; padding: 0 !important; opacity: 0; pointer-events: none; border: none; }
+
+        .cabinet-summary-bar {
+            background-color: #ffffff; border: 1px dashed var(--brand-gold); border-radius: 6px;
+            padding: 0.5rem; text-align: center; font-size: 0.8rem; font-weight: 700; color: #b45309; margin-bottom: 1rem;
+        }
 
         .cabinet-summary-bar {
             background-color: #ffffff; border: 1px dashed var(--brand-gold); border-radius: 6px;
@@ -341,6 +419,15 @@
                     <div id="cpc-display" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">1.0 per click</div>
                 </div>
                 <button class="click-btn" id="click-btn">Send Email</button>
+
+                <!-- Drone Visualizer Matrix -->
+                <div class="visualizer-box" id="visualizer-box">
+                    <div class="visualizer-title">
+                        <span>📊 Department Floor Monitor</span>
+                        <span id="visualizer-count-label">0 staff running</span>
+                    </div>
+                    <div class="visualizer-container" id="visualizer-container"></div>
+                </div>
             </div>
 
             <div class="cabinet-box">
@@ -528,18 +615,18 @@
             },
             
             automation: {
-                intern: { name: "Email Intern", count: 0, baseCost: 15, scale: 1.12, cps: 0.2, desc: "Grinds template jargon. +0.2 emails/sec." },
-                buzzword: { name: "AI Buzzword Gen", count: 0, baseCost: 150, scale: 1.12, cps: 1.5, desc: "Confuse stakeholders. +1.5 emails/sec." },
-                manager: { name: "Middle Manager", count: 0, baseCost: 1200, scale: 1.12, cps: 8.0, desc: "Creates recursive follow-ups. +8.0 emails/sec." },
-                slackBot: { name: "Urgent Slack Bot", count: 0, baseCost: 8500, scale: 1.12, cps: 45.0, desc: "Pings 'Any updates?' constantly. +45.0 emails/sec." },
-                dataAnalyst: { name: "Data Analyst", count: 0, baseCost: 65000, scale: 1.12, cps: 260.0, desc: "Generates massive unread slide decks. +260.0 emails/sec." },
-                steeringComm: { name: "Steering Committee", count: 0, baseCost: 500000, scale: 1.12, cps: 1800.0, desc: "Schedule syncs to plan future syncs. +1,800.0 emails/sec." },
-                consultants: { name: "External Consultants", count: 0, baseCost: 4500000, scale: 1.12, cps: 11500.0, desc: "Repackage data onto flashier charts. +11,500.0 emails/sec." },
-                synergyAI: { name: "Synergy Matrix AI", count: 0, baseCost: 40000000, scale: 1.12, cps: 75000.0, desc: "Spams enterprise nodes globally. +75,000.0 emails/sec." },
-                restructure: { name: "Global Restructure", count: 0, baseCost: 350000000, scale: 1.12, cps: 450000.0, desc: "Complete ecosystem reorganization. +450,000.0 emails/sec." },
-                dataCenter: { name: "Offshore Data Center", count: 0, baseCost: 2800000000, scale: 1.12, cps: 2500000.0, desc: "Server arrays firing data nonstop. +2.5M emails/sec." },
-                matrixBoard: { name: "Synergy Matrix Board", count: 0, baseCost: 22000000000, scale: 1.12, cps: 15000000.0, desc: "Holographic hivemind syncing 24/7. +15M emails/sec." },
-                parentCo: { name: "Interdimensional Parent Co", count: 0, baseCost: 180000000000, scale: 1.12, cps: 90000000.0, desc: "Funnel data streams across the multiverse. +90M emails/sec." }
+                intern: { name: "Email Intern", count: 0, baseCost: 15, scale: 1.12, cps: 0.2, emoji: "💻", desc: "Grinds template jargon. +0.2 emails/sec." },
+                buzzword: { name: "AI Buzzword Gen", count: 0, baseCost: 150, scale: 1.12, cps: 1.5, emoji: "⚡", desc: "Confuse stakeholders. +1.5 emails/sec." },
+                manager: { name: "Middle Manager", count: 0, baseCost: 1200, scale: 1.12, cps: 8.0, emoji: "📋", desc: "Creates recursive follow-ups. +8.0 emails/sec." },
+                slackBot: { name: "Urgent Slack Bot", count: 0, baseCost: 8500, scale: 1.12, cps: 45.0, emoji: "🤖", desc: "Pings 'Any updates?' constantly. +45.0 emails/sec." },
+                dataAnalyst: { name: "Data Analyst", count: 0, baseCost: 65000, scale: 1.12, cps: 260.0, emoji: "📊", desc: "Generates massive unread slide decks. +260.0 emails/sec." },
+                steeringComm: { name: "Steering Committee", count: 0, baseCost: 500000, scale: 1.12, cps: 1800.0, emoji: "👥", desc: "Schedule syncs to plan future syncs. +1,800.0 emails/sec." },
+                consultants: { name: "External Consultants", count: 0, baseCost: 4500000, scale: 1.12, cps: 11500.0, emoji: "💼", desc: "Repackage data onto flashier charts. +11,500.0 emails/sec." },
+                synergyAI: { name: "Synergy Matrix AI", count: 0, baseCost: 40000000, scale: 1.12, cps: 75000.0, emoji: "🧠", desc: "Spams enterprise nodes globally. +75,000.0 emails/sec." },
+                restructure: { name: "Global Restructure", count: 0, baseCost: 350000000, scale: 1.12, cps: 450000.0, emoji: "🏢", desc: "Complete ecosystem reorganization. +450,000.0 emails/sec." },
+                dataCenter: { name: "Offshore Data Center", count: 0, baseCost: 2800000000, scale: 1.12, cps: 2500000.0, emoji: "🖥️", desc: "Server arrays firing data nonstop. +2.5M emails/sec." },
+                matrixBoard: { name: "Synergy Matrix Board", count: 0, baseCost: 22000000000, scale: 1.12, cps: 15000000.0, emoji: "🔮", desc: "Holographic hivemind syncing 24/7. +15M emails/sec." },
+                parentCo: { name: "Interdimensional Parent Co", count: 0, baseCost: 180000000000, scale: 1.12, cps: 90000000.0, emoji: "🌌", desc: "Funnel data streams across the multiverse. +90M emails/sec." }
             },
             
             automationUpgrades: {
@@ -602,7 +689,7 @@
 			{ count: 2500, bonus: 0.01, display: "X" },
 			{ count: 3000, bonus: 0.01, display: "XI" },
 			{ count: 3500, bonus: 0.01, display: "XII" },
-			{ count: 4000, bonus: 0.01, display: "XIII" },
+			{ count: 4000, font: 0.01, display: "XIII" },
 			{ count: 4500, bonus: 0.01, display: "XIV" },
 			{ count: 5000, bonus: 0.01, display: "XV" }
         ];
@@ -648,6 +735,55 @@
                 void workspace.offsetWidth; 
                 workspace.classList.add('shake-element');
                 setTimeout(() => workspace.classList.remove('shake-element'), 300);
+            }
+        }
+
+        // --- DYNAMIC VISUALIZER TRACKER MODULE ---
+        function updateDynamicVisualizer() {
+            const container = document.getElementById('visualizer-container');
+            const label = document.getElementById('visualizer-count-label');
+            const box = document.getElementById('visualizer-box');
+            if (!container || !label || !box) return;
+
+            // Handle crisis mode styling
+            if (state.activeCrisis) {
+                box.classList.add('crisis-mode');
+            } else {
+                box.classList.remove('crisis-mode');
+            }
+
+            let totalUnitsCount = 0;
+            let finalHtml = '';
+
+            Object.keys(state.automation).forEach(key => {
+                const asset = state.automation[key];
+                const count = asset.count || 0;
+                totalUnitsCount += count;
+
+                if (count > 0) {
+                    let nodesHtml = '';
+                    const visibleIcons = Math.min(count, 20);
+                    
+                    for (let i = 0; i < visibleIcons; i++) {
+                        nodesHtml += `<span class="visualizer-node">${asset.emoji || '⚙️'}</span>`;
+                    }
+
+                    let overflowText = count > 20 ? `<span style="color:var(--text-muted); font-weight:700; margin-left:4px;">+${count - 20}</span>` : '';
+
+                    finalHtml += `
+                        <div class="visualizer-row">
+                            <span class="visualizer-row-label">${asset.name}</span>
+                            <div class="visualizer-grid">${nodesHtml}${overflowText}</div>
+                        </div>`;
+                }
+            });
+
+            if (totalUnitsCount === 0) {
+                container.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:1rem; font-style:italic; width:100%;">Floor completely vacant. Purchase infrastructure units to staff rows.</div>';
+                label.textContent = "0 staff running";
+            } else {
+                container.innerHTML = finalHtml;
+                label.textContent = `${totalUnitsCount.toLocaleString()} assets operational`;
             }
         }
 
@@ -1432,6 +1568,9 @@
             };
             refreshCards(state.upgrades); 
             refreshCards(state.automation);
+
+            // Keep the floor visualizer updated
+            updateDynamicVisualizer();
         }
 
         // --- GLOBAL INTERFACE COLLAPSIBLE TOGGLES ---
@@ -1461,6 +1600,12 @@
                 icon.style.transform = content.classList.contains('collapsed') ? 'rotate(-90deg)' : 'rotate(0deg)';
             }
         };
+
+        // --- CORE SAVE / LOAD ENGINE ---
+        function toFiniteNumber(value, fallback = 0) {
+            const parsed = Number(value);
+            return Number.isFinite(parsed) ? parsed : fallback;
+        }
 
         // --- CORE SAVE / LOAD ENGINE ---
         function toFiniteNumber(value, fallback = 0) {
